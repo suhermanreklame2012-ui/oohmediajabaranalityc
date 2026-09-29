@@ -1,0 +1,6 @@
+{
+  "name": "JabarOOH - Dashboard Performa Reklame Jawa Barat",
+  "description": "Platform analitik dan pengukuran performa media iklan luar ruang (OOH/DOOH) di area Jawa Barat dengan visualisasi data real-time, analisis efektivitas lokasi penempatan billboard, dan database geospasial terstruktur.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

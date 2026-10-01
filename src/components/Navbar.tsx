@@ -1,6 +1,6 @@
-import { MapPin, Activity, Sparkles, BarChart3, Database, Calculator, FileText, Plus, TrendingUp } from 'lucide-react';
+import { MapPin, Activity, Sparkles, BarChart3, Database, Calculator, FileText, Plus, TrendingUp, Cpu, Layers, Users } from 'lucide-react';
 
-export type NavTabType = 'map' | 'realtime' | 'traffic-insights' | 'predictive' | 'effectiveness' | 'database' | 'planner' | 'reports';
+export type NavTabType = 'map' | 'realtime' | 'traffic-insights' | 'predictive' | 'effectiveness' | 'demographic' | 'database' | 'planner' | 'omnichannel-planner' | 'ai-pipeline' | 'reports';
 
 interface NavbarProps {
   activeTab: NavTabType;
@@ -8,6 +8,8 @@ interface NavbarProps {
   onOpenAddModal: () => void;
   onOpenExportModal: () => void;
   totalSpotsCount: number;
+  isSyncing?: boolean;
+  lastSyncTime?: Date;
 }
 
 export function Navbar({
@@ -15,7 +17,9 @@ export function Navbar({
   setActiveTab,
   onOpenAddModal,
   onOpenExportModal,
-  totalSpotsCount
+  totalSpotsCount,
+  isSyncing = false,
+  lastSyncTime
 }: NavbarProps) {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/90 backdrop-blur-md">
@@ -32,9 +36,18 @@ export function Navbar({
           >
             JabarOOH Analytics
           </a>
-          <span className="hidden sm:inline-block text-xs font-mono text-slate-500 tabular-nums">
-            {totalSpotsCount} Titik Terdata
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline-block text-xs font-mono text-slate-500 tabular-nums">
+              {totalSpotsCount} Titik Terdata
+            </span>
+            <div 
+              className="hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-400"
+              title={lastSyncTime ? `Polling service aktif setiap 60 detik. Sinkronisasi terakhir: ${lastSyncTime.toLocaleTimeString('id-ID')}` : 'Polling service aktif setiap 60 detik'}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${isSyncing ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`} />
+              <span>{isSyncing ? 'Menyinkronkan...' : 'Auto-Sync 60s'}</span>
+            </div>
+          </div>
         </div>
 
         {/* Zone 2: Clean text navigation links */}
@@ -100,6 +113,19 @@ export function Navbar({
           </button>
 
           <button
+            onClick={() => setActiveTab('demographic')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap border ${
+              activeTab === 'demographic'
+                ? 'bg-cyan-500 text-slate-950 font-bold border-cyan-400 shadow-md ring-2 ring-cyan-400/30'
+                : 'bg-slate-900/80 text-cyan-300 hover:text-cyan-200 border-cyan-500/40 hover:bg-slate-900'
+            }`}
+            title="Analisis Profil Demografi, Gender & Minat Audiens dengan AI Gemini"
+          >
+            <Users className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Demografi AI</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('database')}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
               activeTab === 'database'
@@ -121,6 +147,31 @@ export function Navbar({
           >
             <Calculator className="w-3.5 h-3.5" />
             <span>Perencanaan Merk & POI</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('omnichannel-planner')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap border ${
+              activeTab === 'omnichannel-planner'
+                ? 'bg-amber-400 text-slate-950 font-bold border-amber-300 shadow-md ring-2 ring-amber-400/30'
+                : 'bg-slate-900/80 text-amber-300 hover:text-amber-200 border-amber-400/40 hover:bg-slate-900'
+            }`}
+            title="Strategi Plan Planner Perbandingan Penempatan Iklan (ATL · BTL · DTL) Bandung, Jabar & Nasional"
+          >
+            <Layers className="w-3.5 h-3.5 text-amber-400" />
+            <span>Strategi (ATL·BTL·DTL)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ai-pipeline')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
+              activeTab === 'ai-pipeline'
+                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-sm'
+                : 'text-cyan-400/80 hover:text-cyan-300 hover:bg-cyan-950/40'
+            }`}
+          >
+            <Cpu className="w-3.5 h-3.5 text-cyan-400" />
+            <span>AI Pipeline</span>
           </button>
         </nav>
 
@@ -192,6 +243,14 @@ export function Navbar({
           Efektivitas
         </button>
         <button
+          onClick={() => setActiveTab('demographic')}
+          className={`px-2.5 py-1 text-xs whitespace-nowrap rounded font-bold ${
+            activeTab === 'demographic' ? 'bg-cyan-500 text-slate-950 font-black' : 'text-cyan-400 border border-cyan-400/40'
+          }`}
+        >
+          Demografi AI
+        </button>
+        <button
           onClick={() => setActiveTab('database')}
           className={`px-2.5 py-1 text-xs whitespace-nowrap rounded ${
             activeTab === 'database' ? 'bg-amber-400/10 text-amber-400 font-semibold' : 'text-slate-400'
@@ -206,6 +265,14 @@ export function Navbar({
           }`}
         >
           Rencana Merk & POI
+        </button>
+        <button
+          onClick={() => setActiveTab('omnichannel-planner')}
+          className={`px-2.5 py-1 text-xs whitespace-nowrap rounded font-bold ${
+            activeTab === 'omnichannel-planner' ? 'bg-amber-400 text-slate-950 font-black' : 'text-amber-400 border border-amber-400/40'
+          }`}
+        >
+          Strategi (ATL·BTL·DTL)
         </button>
         <button
           onClick={() => setActiveTab('reports')}

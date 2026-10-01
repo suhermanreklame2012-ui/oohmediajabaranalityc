@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { BillboardSpot } from '../types/ooh';
+import { BillboardSpot, MobilityCorridorType } from '../types/ooh';
 import { 
   BRAND_INDUSTRY_PROFILES, 
   BrandIndustryProfile, 
@@ -7,7 +7,18 @@ import {
   BrandPlacementEvaluation,
   getSpotPois
 } from '../data/poiData';
-import { WEST_JAVA_REGIONAL_CLUSTERS, WEST_JAVA_REGENCIES } from '../data/jabarData';
+import { 
+  calculateOptimalTravelPath, 
+  generateDominationJourney, 
+  solveWeightedKnapsack, 
+  getSpotMobilityCorridor,
+  estimateRoadDistanceKm,
+  calculateBearing,
+  DATABASE_SCHEMA_SQL
+} from '../utils/routeOptimizer';
+import { CampaignRouteMap } from './CampaignRouteMap';
+import { BudgetOptimizationTool } from './BudgetOptimizationTool';
+import { BudgetOptimizationResult } from '../utils/budgetOptimizationHeuristics';
 import { 
   Calculator, 
   Sparkles, 
@@ -37,7 +48,14 @@ import {
   Share2,
   FileText,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  Database,
+  Route,
+  Maximize2,
+  Copy,
+  CheckCheck,
+  ClipboardCheck,
+  Wrench
 } from 'lucide-react';
 
 interface CampaignPlannerProps {
@@ -48,35 +66,291 @@ interface CampaignPlannerProps {
 
 // Brand preset suggestions for instant 1-click loading
 const BRAND_PRESETS = [
-  { name: 'Samsung Galaxy S25 Ultra', industryId: 'gadget_tech', budget: 350, goal: 'awareness' as const },
-  { name: 'Bank BCA Prioritas', industryId: 'banking_fintech', budget: 450, goal: 'awareness' as const },
-  { name: 'BYD Sealion 7 EV', industryId: 'automotive_ev', budget: 500, goal: 'awareness' as const },
-  { name: 'Indomie Kuliner Nusantara', industryId: 'fmcg_food', budget: 280, goal: 'conversion' as const },
-  { name: 'Uniqlo LifeWear Jabar', industryId: 'fashion_beauty', budget: 320, goal: 'conversion' as const },
-  { name: 'Universitas Telkom Bandung', industryId: 'education_university', budget: 200, goal: 'dwell' as const },
-  { name: 'Summarecon Crown Gading', industryId: 'property_living', budget: 400, goal: 'dwell' as const },
-  { name: 'Mayapada Hospital Bandung', industryId: 'healthcare_pharma', budget: 250, goal: 'dwell' as const }
+  { name: 'Samsung Galaxy S25 Ultra', industryId: 'gadget_tech', budget: 350, goal: 'awareness' as const, corridor: 'Jalur Komersial & Retail (Premium Areas)' as MobilityCorridorType },
+  { name: 'Bank BCA Prioritas', industryId: 'banking_fintech', budget: 450, goal: 'awareness' as const, corridor: 'Jalur Komuter (Daily Commuters)' as MobilityCorridorType },
+  { name: 'BYD Sealion 7 EV', industryId: 'automotive_ev', budget: 500, goal: 'awareness' as const, corridor: 'Jalur Komuter (Daily Commuters)' as MobilityCorridorType },
+  { name: 'Wisata Lembang Wonderland', industryId: 'tourism_leisure', budget: 280, goal: 'conversion' as const, corridor: 'Jalur Pariwisata (Leisure & Tourism)' as MobilityCorridorType },
+  { name: 'Uniqlo Paris Van Java', industryId: 'fashion_beauty', budget: 320, goal: 'conversion' as const, corridor: 'Jalur Komersial & Retail (Premium Areas)' as MobilityCorridorType },
+  { name: 'Logistik Cepat J&T Cargo', industryId: 'industrial_b2b', budget: 220, goal: 'awareness' as const, corridor: 'Jalur Logistik & Industri' as MobilityCorridorType }
 ];
+
+/**
+ * Result structure for the top effective billboard suggestion
+ */
+export interface TopEffectiveBillboardSuggestion {
+  spot: BillboardSpot;
+  rank: number;
+  trafficDensityScore: number;         // 0-100 (volume, VAC, dwell time & congestion index)
+  historicalConversionRatePct: number;   // % (derived from historical trend trafficIndex, occupancy, dwell time & effectiveness)
+  compositeEffectivenessScore: number;   // 0-100 overall weighted score
+  dailyTrafficVolume: number;           // DGR
+  avgDwellTimeSec: number;              // Dwell time in seconds
+  historicalOccupancyPct: number;       // %
+  keyRecommendationRationale: string;
+}
+
+/**
+ * Helper function within CampaignPlanner that suggests the top 5 most effective
+ * billboard locations based on current traffic density and historical conversion rates.
+ */
+export function suggestTopEffectiveBillboards(
+  spots: BillboardSpot[],
+  limit: number = 5
+): TopEffectiveBillboardSuggestion[] {
+  if (!spots || spots.length === 0) return [];
+
+  const evaluated = spots.map(spot => {
+    // 1. Current Traffic Density Score (0 - 100)
+    // Derived from daily traffic volume (DGR), visibility adjusted contacts (VAC),
+    // and congestion index (higher dwell time + lower speed indicates dense bumper-to-bumper queue)
+    const volumeFactor = Math.min(100, (spot.dailyGrossReach / 180000) * 100);
+    const vacFactor = Math.min(100, (spot.vacDaily / 140000) * 100);
+    const congestionFactor = Math.min(
+      100,
+      (spot.avgDwellTimeSec / 45) * 60 + Math.max(0, (40 - spot.avgSpeedKmh) * 1.5)
+    );
+
+    const trafficDensityScore = Math.min(
+      99,
+      Math.max(45, Math.round(volumeFactor * 0.40 + vacFactor * 0.35 + congestionFactor * 0.25))
+    );
+
+    // 2. Historical Conversion Rate (%)
+    // Derived from historicalTrend (trafficIndex, occupancyPercent) + effectivenessScore + dwell boost
+    const historicalRecords = spot.historicalTrend || [];
+    const avgHistoricalTrafficIndex =
+      historicalRecords.length > 0
+        ? historicalRecords.reduce((acc, h) => acc + (h.trafficIndex || 100), 0) / historicalRecords.length
+        : 100;
+
+    const avgHistoricalOccupancy =
+      historicalRecords.length > 0
+        ? historicalRecords.reduce((acc, h) => acc + (h.occupancyPercent || 85), 0) / historicalRecords.length
+        : 85;
+
+    // Base conversion benchmark for prime outdoor media in Java Barat (2.2% - 9.4%)
+    const baseConversionRate = (spot.effectivenessScore / 100) * 4.2;
+    const dwellConversionMultiplier = 1 + (spot.avgDwellTimeSec / 45) * 0.45;
+    const historicalTrendFactor = (avgHistoricalTrafficIndex / 100) * (avgHistoricalOccupancy / 100);
+
+    const historicalConversionRatePct = parseFloat(
+      Math.min(9.4, Math.max(2.1, baseConversionRate * dwellConversionMultiplier * historicalTrendFactor)).toFixed(2)
+    );
+
+    // 3. Composite Effectiveness Score (0 - 100)
+    // Weighted combination: Traffic Density (45%) + Historical Conversion (40%) + Visibility Score (15%)
+    const normalizedConversion = Math.min(100, (historicalConversionRatePct / 8.5) * 100);
+    const compositeEffectivenessScore = Math.min(
+      99,
+      Math.max(
+        50,
+        Math.round(trafficDensityScore * 0.45 + normalizedConversion * 0.40 + spot.visibilityScore * 0.15)
+      )
+    );
+
+    const rationale = `Densitas lalu lintas ${trafficDensityScore}/100 (${spot.dailyGrossReach.toLocaleString('id-ID')} DGR, dwell ${spot.avgDwellTimeSec}s) dengan konversi historis ${historicalConversionRatePct}% didukung okupansi ${avgHistoricalOccupancy.toFixed(0)}%.`;
+
+    return {
+      spot,
+      rank: 0,
+      trafficDensityScore,
+      historicalConversionRatePct,
+      compositeEffectivenessScore,
+      dailyTrafficVolume: spot.dailyGrossReach,
+      avgDwellTimeSec: spot.avgDwellTimeSec,
+      historicalOccupancyPct: Math.round(avgHistoricalOccupancy),
+      keyRecommendationRationale: rationale
+    };
+  });
+
+  // Sort descending by composite effectiveness score
+  evaluated.sort((a, b) => b.compositeEffectivenessScore - a.compositeEffectivenessScore);
+
+  return evaluated.slice(0, limit).map((item, idx) => ({
+    ...item,
+    rank: idx + 1
+  }));
+}
+
+/**
+ * Inspection leg structure detailing travel time, distance, and technical checklist
+ */
+export interface FieldInspectionLeg {
+  legIndex: number;
+  fromSpot: BillboardSpot;
+  toSpot: BillboardSpot;
+  distanceKm: number;
+  drivingMinutes: number;
+  inspectionMinutes: number;
+  cumulativeMinutes: number;
+  bearing: { degrees: number; text: string };
+  auditChecklist: string[];
+}
+
+/**
+ * Complete Field Inspection Plan generated by the route planning algorithm
+ */
+export interface FieldInspectionPlan {
+  orderedSpots: BillboardSpot[];
+  totalSpotsCount: number;
+  totalDrivingKm: number;
+  totalDrivingMinutes: number;
+  totalInspectionMinutes: number;
+  totalShiftHours: number;
+  legs: FieldInspectionLeg[];
+  inspectionRationale: string;
+  routeData: import('../types/ooh').OptimizedTravelRoute;
+}
+
+/**
+ * Route planning algorithm that calculates the most efficient visiting sequence
+ * for a field team to inspect a set of selected billboard spots (TSP Nearest-Neighbor + 2-Opt)
+ */
+export function calculateFieldInspectionRoute(
+  spots: BillboardSpot[],
+  startSpotId?: string
+): FieldInspectionPlan {
+  if (!spots || spots.length === 0) {
+    const emptyRoute: import('../types/ooh').OptimizedTravelRoute = {
+      orderedSpots: [],
+      legs: [],
+      totalDistanceKm: 0,
+      totalTravelMinutes: 0,
+      pathCoordinates: [],
+      isDominationJourney: false,
+      repetitionMultiplier: 1,
+      avgSpeedKmh: 28
+    };
+    return {
+      orderedSpots: [],
+      totalSpotsCount: 0,
+      totalDrivingKm: 0,
+      totalDrivingMinutes: 0,
+      totalInspectionMinutes: 0,
+      totalShiftHours: 0,
+      legs: [],
+      inspectionRationale: 'Pilih titik reklame terlebih dahulu untuk menyusun jadwal rute inspeksi tim lapangan.',
+      routeData: emptyRoute
+    };
+  }
+
+  // 1. TSP Optimal path algorithm using 2-Opt heuristic
+  const travelPath = calculateOptimalTravelPath(spots, startSpotId, false);
+  const orderedSpots = travelPath.orderedSpots;
+
+  // 2. Build inspection legs with specific audit focus per spot type
+  const legs: FieldInspectionLeg[] = [];
+  let cumulativeDrivingMinutes = 0;
+  let totalInspectionMinutes = 0;
+
+  orderedSpots.forEach((spot, idx) => {
+    const isLed = spot.type.includes('LED') || spot.type.includes('Mega');
+    const isJpo = spot.type.includes('JPO');
+    const spotInspectionTime = isLed ? 25 : isJpo ? 20 : 15;
+    totalInspectionMinutes += spotInspectionTime;
+
+    if (idx < orderedSpots.length - 1) {
+      const fromSpot = spot;
+      const toSpot = orderedSpots[idx + 1];
+      const distanceKm = estimateRoadDistanceKm(
+        fromSpot.coordinates.lat,
+        fromSpot.coordinates.lng,
+        toSpot.coordinates.lat,
+        toSpot.coordinates.lng
+      );
+      const drivingMinutes = Math.max(5, Math.round((distanceKm / 28) * 60));
+      cumulativeDrivingMinutes += drivingMinutes;
+
+      const bearing = calculateBearing(
+        fromSpot.coordinates.lat,
+        fromSpot.coordinates.lng,
+        toSpot.coordinates.lat,
+        toSpot.coordinates.lng
+      );
+
+      const checklist = [
+        isLed 
+          ? 'Pemeriksaan modul kabinet LED, dead-pixel & kalibrasi sensor lux' 
+          : 'Pemeriksaan ketegangan visual vinyl & fungsi lampu sorot malam (floodlight)',
+        'Inspeksi kekokohan tiang monopole, baut angkur pondasi & grounding penangkal petir',
+        'Verifikasi jarak pandang bebas dari dahan pohon, kabel PLN & rambu jalan',
+        spot.occupancyStatus === 'Occupied' 
+          ? `Audit kesesuaian materi iklan aktif klien (${spot.currentBrand || 'Klien'})` 
+          : 'Audit stiker ketersediaan & nomor kontak pemasaran CV Bandung Media Outdoor'
+      ];
+
+      legs.push({
+        legIndex: idx + 1,
+        fromSpot,
+        toSpot,
+        distanceKm,
+        drivingMinutes,
+        inspectionMinutes: spotInspectionTime,
+        cumulativeMinutes: cumulativeDrivingMinutes + totalInspectionMinutes,
+        bearing,
+        auditChecklist: checklist
+      });
+    }
+  });
+
+  const totalDrivingKm = travelPath.totalDistanceKm;
+  const totalDrivingMinutes = travelPath.totalTravelMinutes;
+  const totalShiftDurationMinutes = totalDrivingMinutes + totalInspectionMinutes;
+  const totalShiftHours = parseFloat((totalShiftDurationMinutes / 60).toFixed(1));
+
+  return {
+    orderedSpots,
+    totalSpotsCount: orderedSpots.length,
+    totalDrivingKm,
+    totalDrivingMinutes,
+    totalInspectionMinutes,
+    totalShiftHours,
+    legs,
+    inspectionRationale: `Jadwal efisien ${orderedSpots.length} titik inspeksi lapangan: ${totalDrivingKm} km berkendara (~${totalDrivingMinutes} mnt) + ${totalInspectionMinutes} mnt audit fisik = Total shift ${totalShiftHours} jam.`,
+    routeData: travelPath
+  };
+}
 
 export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: CampaignPlannerProps) {
   // Brand Profiling State
-  const [brandName, setBrandName] = useState<string>('Samsung Galaxy Flagship');
+  const [brandName, setBrandName] = useState<string>('CV Bandung Media Outdoor - Client Showcase');
   const [selectedIndustryId, setSelectedIndustryId] = useState<string>('gadget_tech');
   const [campaignGoal, setCampaignGoal] = useState<'awareness' | 'conversion' | 'dwell' | 'cpm'>('awareness');
-  const [selectedSes, setSelectedSes] = useState<string[]>(['SES A+', 'SES A', 'SES B']);
   
+  // 1. FILTER JALUR MOBILITAS (CORRIDOR-BASED TARGETING)
+  const [targetCorridor, setTargetCorridor] = useState<MobilityCorridorType | 'Semua Jalur'>('Semua Jalur');
+  const [corridorPriorityWeight, setCorridorPriorityWeight] = useState<number>(1.8); // 1.0x - 2.5x bobot
+
+  // 2. PEMETAAN PROFIL AUDIENS (DEMOGRAPHIC TAGGING SES)
+  const [selectedSes, setSelectedSes] = useState<('SES A' | 'SES B' | 'SES C')[]>(['SES A', 'SES B']);
+  const [sesWeightMultiplier, setSesWeightMultiplier] = useState<number>(1.5); // 1.0x - 2.0x bobot
+
   // Budget, Duration & Geography
   const [budgetMillions, setBudgetMillions] = useState<number>(350); // Millions IDR
   const [durationMonths, setDurationMonths] = useState<number>(1);
   const [geoZone, setGeoZone] = useState<string>('all');
   const [searchSpotQuery, setSearchSpotQuery] = useState<string>('');
 
-  // View Mode: 'cards' | 'spatial_map' | 'matrix' | 'proposal'
-  const [viewMode, setViewMode] = useState<'cards' | 'spatial_map' | 'matrix' | 'proposal'>('cards');
+  // 4. OPSI STRATEGI "DOMINATION JOURNEY"
+  const [isDominationJourneyActive, setIsDominationJourneyActive] = useState<boolean>(false);
+  const [dominationRationale, setDominationRationale] = useState<string>('');
+
+  // 5. ROUTE-FINDING & ROUTE VISUALIZATION MAP TOGGLE
+  const [showRoutePath, setShowRoutePath] = useState<boolean>(true); // Visual route path toggle
+  const [startSpotId, setStartSpotId] = useState<string | undefined>(undefined);
+  const [selectedSpotForMap, setSelectedSpotForMap] = useState<BillboardSpot | null>(null);
+
+  // View Mode: 'cards' | 'route_map' | 'budget_optimization' | 'matrix' | 'proposal'
+  const [viewMode, setViewMode] = useState<'cards' | 'route_map' | 'budget_optimization' | 'matrix' | 'proposal'>('route_map');
+  const [isInspectionMode, setIsInspectionMode] = useState<boolean>(false);
 
   // Manual Overrides / Selected Spots
   const [manualSelectedSpotIds, setManualSelectedSpotIds] = useState<string[]>([]);
   const [isCustomizingSelection, setIsCustomizingSelection] = useState<boolean>(false);
+
+  // Database Schema Modal
+  const [showDbModal, setShowDbModal] = useState<boolean>(false);
+  const [copiedSql, setCopiedSql] = useState<boolean>(false);
 
   // Active industry profile
   const currentIndustry = useMemo(() => {
@@ -91,16 +365,37 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
     return 1.0;
   }, [durationMonths]);
 
-  // Filter spots by geographical zone
+  // Filter spots by geographical zone and mobility corridor
   const eligibleSpots = useMemo(() => {
     return spots.filter(s => {
-      if (geoZone === 'bandung_raya') return s.regency.includes('Bandung') || s.regency.includes('Cimahi');
-      if (geoZone === 'bodebek') return s.regency.includes('Bekasi') || s.regency.includes('Bogor') || s.regency.includes('Depok');
-      if (geoZone === 'pantura') return s.regency.includes('Karawang') || s.regency.includes('Purwakarta') || s.regency.includes('Cirebon');
-      if (geoZone === 'priangan') return s.regency.includes('Garut') || s.regency.includes('Tasikmalaya') || s.regency.includes('Sukabumi') || s.regency.includes('Cianjur');
+      // Geo filter
+      if (geoZone === 'bandung_raya' && !(s.regency.includes('Bandung') || s.regency.includes('Cimahi'))) return false;
+      if (geoZone === 'bodebek' && !(s.regency.includes('Bekasi') || s.regency.includes('Bogor') || s.regency.includes('Depok'))) return false;
+      if (geoZone === 'pantura' && !(s.regency.includes('Karawang') || s.regency.includes('Purwakarta') || s.regency.includes('Cirebon'))) return false;
+      if (geoZone === 'priangan' && !(s.regency.includes('Garut') || s.regency.includes('Tasikmalaya') || s.regency.includes('Sukabumi') || s.regency.includes('Cianjur'))) return false;
+
+      // Mobility corridor filter
+      if (targetCorridor !== 'Semua Jalur') {
+        const spotCorridor = getSpotMobilityCorridor(s);
+        if (spotCorridor !== targetCorridor) return false;
+      }
+
       return true;
     });
-  }, [spots, geoZone]);
+  }, [spots, geoZone, targetCorridor]);
+
+  // Top 5 Most Effective Billboard Suggestions based on Traffic Density & Historical Conversion Rates
+  const top5EffectiveSuggestions = useMemo(() => {
+    return suggestTopEffectiveBillboards(spots, 5);
+  }, [spots]);
+
+  const [showTop5SuggestionsDrawer, setShowTop5SuggestionsDrawer] = useState<boolean>(true);
+
+  const handleApplyTop5Suggestions = () => {
+    const topIds = top5EffectiveSuggestions.map(s => s.spot.id);
+    setManualSelectedSpotIds(topIds);
+    setIsCustomizingSelection(true);
+  };
 
   // Evaluate all eligible spots using the POI & Brand Matching Engine
   const allEvaluatedSpots = useMemo(() => {
@@ -108,7 +403,7 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
       return evaluateSpotForBrand(
         spot,
         selectedIndustryId,
-        selectedSes,
+        selectedSes.map(s => s === 'SES A' ? 'SES A+' : s),
         campaignGoal,
         durationMonths,
         discountFactor
@@ -116,92 +411,109 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
     }).sort((a, b) => b.overallMatchScore - a.overallMatchScore);
   }, [eligibleSpots, selectedIndustryId, selectedSes, campaignGoal, durationMonths, discountFactor]);
 
-  // Automatic greedy Knapsack package recommendation based on budget
-  const recommendedPackage = useMemo(() => {
-    const budgetTotal = budgetMillions * 1000000;
-    let spent = 0;
-    const selected: BrandPlacementEvaluation[] = [];
+  // 3. ALGORITMA WEIGHTED KNAPSACK OPTIMIZATION RUNNER
+  const knapsackResult = useMemo(() => {
+    return solveWeightedKnapsack({
+      spots: eligibleSpots.length > 0 ? eligibleSpots : spots,
+      budgetMillions,
+      durationMonths,
+      targetCorridor,
+      corridorPriorityWeight,
+      targetSes: selectedSes,
+      sesWeightMultiplier,
+      campaignGoal,
+      discountFactor
+    });
+  }, [
+    eligibleSpots,
+    spots,
+    budgetMillions,
+    durationMonths,
+    targetCorridor,
+    corridorPriorityWeight,
+    selectedSes,
+    sesWeightMultiplier,
+    campaignGoal,
+    discountFactor
+  ]);
 
-    // Greedy pick by overallMatchScore
-    for (const item of allEvaluatedSpots) {
-      if (spent + item.costEstimateIdr <= budgetTotal) {
-        selected.push(item);
-        spent += item.costEstimateIdr;
-      }
-    }
-
-    return {
-      selected,
-      totalSpent: spent,
-      remainingBudget: budgetTotal - spent
-    };
-  }, [allEvaluatedSpots, budgetMillions]);
-
-  // Final active spots (either manual selection if customized or automatic package)
-  const activeSpotEvaluations = useMemo(() => {
+  // Active Selected Spots (Knapsack recommendation vs Domination Journey vs Manual)
+  const activeSpots = useMemo(() => {
     if (isCustomizingSelection && manualSelectedSpotIds.length > 0) {
-      return allEvaluatedSpots.filter(item => manualSelectedSpotIds.includes(item.spot.id));
+      return spots.filter(s => manualSelectedSpotIds.includes(s.id));
     }
-    return recommendedPackage.selected;
-  }, [isCustomizingSelection, manualSelectedSpotIds, recommendedPackage, allEvaluatedSpots]);
+    return knapsackResult.selectedSpots;
+  }, [isCustomizingSelection, manualSelectedSpotIds, knapsackResult, spots]);
+
+  // 5. ROUTE-FINDING UTILITY: Menghitung jalur perjalanan paling efisien menghubungkan titik-titik terpilih (TSP 2-opt)
+  const calculatedTravelRoute = useMemo(() => {
+    return calculateOptimalTravelPath(activeSpots, startSpotId, isDominationJourneyActive);
+  }, [activeSpots, startSpotId, isDominationJourneyActive]);
+
+  // Field Team Inspection Route Planning: Menghitung urutan kunjungan audit teknis paling efisien
+  const fieldInspectionPlan = useMemo(() => {
+    return calculateFieldInspectionRoute(activeSpots, startSpotId);
+  }, [activeSpots, startSpotId]);
 
   // Aggregated campaign performance metrics
   const campaignSummaryMetrics = useMemo(() => {
-    const totalSpent = activeSpotEvaluations.reduce((acc, s) => acc + s.costEstimateIdr, 0);
+    const totalSpent = activeSpots.reduce((acc, s) => {
+      return acc + (s.ratePerMonthIdr * durationMonths * discountFactor);
+    }, 0);
     const budgetTotal = budgetMillions * 1000000;
     const remainingBudget = Math.max(0, budgetTotal - totalSpent);
     
     // Aggregated Impressions & Reach
-    const totalMonthlyGrossReach = activeSpotEvaluations.reduce((acc, s) => acc + (s.monthlyGrossReach * durationMonths), 0);
-    const totalMonthlyVac = activeSpotEvaluations.reduce((acc, s) => acc + (s.monthlyVac * durationMonths), 0);
-    const totalGrossImpressions = activeSpotEvaluations.reduce((acc, s) => acc + (s.monthlyGrossImpressions * durationMonths), 0);
+    const totalMonthlyGrossReach = activeSpots.reduce((acc, s) => acc + (s.dailyGrossReach * 30 * durationMonths), 0);
+    const totalMonthlyVac = activeSpots.reduce((acc, s) => acc + (s.vacDaily * 30 * durationMonths), 0);
     
-    // Average metrics
-    const avgMatchScore = activeSpotEvaluations.length > 0
-      ? Math.round(activeSpotEvaluations.reduce((acc, s) => acc + s.overallMatchScore, 0) / activeSpotEvaluations.length)
-      : 0;
-    
-    const avgDwellTime = activeSpotEvaluations.length > 0
-      ? Math.round(activeSpotEvaluations.reduce((acc, s) => acc + s.spot.avgDwellTimeSec, 0) / activeSpotEvaluations.length)
+    const avgDwellTime = activeSpots.length > 0
+      ? Math.round(activeSpots.reduce((acc, s) => acc + s.avgDwellTimeSec, 0) / activeSpots.length)
       : 0;
 
     const blendedCpm = totalMonthlyVac > 0
       ? Math.round((totalSpent / totalMonthlyVac) * 1000)
       : 0;
 
-    // Deduplicated Net Unique Reach (assuming 25% overlap among multi-spot corridor commutes)
-    const rawUniqueSum = activeSpotEvaluations.reduce((acc, s) => acc + s.estimatedUniqueReach, 0);
-    const overlapFactor = activeSpotEvaluations.length > 1 ? 0.78 : 1.0;
-    const netUniqueReach = Math.round(rawUniqueSum * overlapFactor);
+    // Deduplicated Net Unique Reach (applying Domination repetition multiplier)
+    const rawUniqueSum = totalMonthlyGrossReach / (calculatedTravelRoute.isDominationJourney ? 3.8 : 2.6);
+    const netUniqueReach = Math.round(rawUniqueSum);
 
-    // GRP (Gross Rating Points) based on West Java target audience baseline (~15M target)
+    // GRP (Gross Rating Points)
     const grp = Math.round((totalMonthlyGrossReach / 15000000) * 100);
-
-    // Average frequency
-    const avgFrequency = netUniqueReach > 0 ? parseFloat((totalMonthlyGrossReach / netUniqueReach).toFixed(1)) : 1.0;
+    const avgFrequency = calculatedTravelRoute.repetitionMultiplier;
 
     return {
       totalSpent,
       remainingBudget,
       totalMonthlyGrossReach,
       totalMonthlyVac,
-      totalGrossImpressions,
-      avgMatchScore,
       avgDwellTime,
       blendedCpm,
       netUniqueReach,
       grp,
       avgFrequency
     };
-  }, [activeSpotEvaluations, budgetMillions, durationMonths]);
+  }, [activeSpots, budgetMillions, durationMonths, discountFactor, calculatedTravelRoute]);
 
-  // Handle Preset Load
-  const handleLoadPreset = (preset: typeof BRAND_PRESETS[0]) => {
-    setBrandName(preset.name);
-    setSelectedIndustryId(preset.industryId);
-    setBudgetMillions(preset.budget);
-    setCampaignGoal(preset.goal);
+  // 4. ACTION: AKTIVASI DOMINATION JOURNEY
+  const handleTriggerDominationJourney = () => {
+    const corridorToUse = targetCorridor === 'Semua Jalur' ? 'Jalur Komuter (Daily Commuters)' : targetCorridor;
+    const result = generateDominationJourney(spots, corridorToUse);
+    
+    setIsDominationJourneyActive(true);
+    setDominationRationale(result.rationale);
+    setIsCustomizingSelection(true);
+    setManualSelectedSpotIds(result.selectedSpots.map(s => s.id));
+    setViewMode('route_map');
+    setShowRoutePath(true);
+  };
+
+  // Reset to auto recommendations
+  const handleResetToAutoPackage = () => {
     setIsCustomizingSelection(false);
+    setIsDominationJourneyActive(false);
+    setManualSelectedSpotIds([]);
   };
 
   // Toggle Spot in Package
@@ -215,7 +527,7 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
         nextIds = [...manualSelectedSpotIds, spotId];
       }
     } else {
-      const currentIds = recommendedPackage.selected.map(s => s.spot.id);
+      const currentIds = knapsackResult.selectedSpots.map(s => s.id);
       if (currentIds.includes(spotId)) {
         nextIds = currentIds.filter(id => id !== spotId);
       } else {
@@ -225,10 +537,21 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
     setManualSelectedSpotIds(nextIds);
   };
 
-  // Reset to auto recommendations
-  const handleResetToAutoPackage = () => {
+  // Handle Preset Load
+  const handleLoadPreset = (preset: typeof BRAND_PRESETS[0]) => {
+    setBrandName(preset.name);
+    setSelectedIndustryId(preset.industryId);
+    setBudgetMillions(preset.budget);
+    setCampaignGoal(preset.goal);
+    setTargetCorridor(preset.corridor);
     setIsCustomizingSelection(false);
-    setManualSelectedSpotIds([]);
+    setIsDominationJourneyActive(false);
+  };
+
+  const handleCopySql = () => {
+    navigator.clipboard.writeText(DATABASE_SCHEMA_SQL);
+    setCopiedSql(true);
+    setTimeout(() => setCopiedSql(false), 2500);
   };
 
   return (
@@ -241,34 +564,41 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
           <div>
             <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-amber-400 mb-1">
               <Sparkles className="w-4 h-4" />
-              <span>Sistem Perencanaan & Pemetaan Penempatan Iklan Merk</span>
+              <span>CV Bandung Media Outdoor · OOH Strategic Planner</span>
             </div>
             <h2 className="text-2xl font-bold text-white tracking-tight">
-              Brand Campaign & Spatial Media Placement Planner
+              Sistem Perencanaan & Optimasi Rute Reklame Mobilitas
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              Rancang penempatan iklan luar ruang (OOH/DOOH) dengan pemetaan presisi berbasis <strong>Point of Interest (POI)</strong>, estimasi impresi kontak mata (VAC), demografi komuter, dan efisiensi anggaran di seluruh wilayah Jawa Barat.
+              Optimalkan penempatan reklame (Billboard & LED Videotron) berbasis <strong>jalur mobilitas komuter</strong>, pemetaan demografis SES, algoritma <strong>Weighted Knapsack Optimization</strong>, dan strategi perjalanan repetitif <strong>Domination Journey</strong> di koridor Jawa Barat.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {/* Database ERD Modal Trigger */}
+            <button
+              onClick={() => setShowDbModal(true)}
+              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-md"
+            >
+              <Database className="w-4 h-4 text-emerald-400" />
+              <span>Skema ERD / SQL</span>
+            </button>
+
+            {/* DOMINATION JOURNEY 1-CLICK STRATEGY */}
+            <button
+              onClick={handleTriggerDominationJourney}
+              className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-lg shadow-amber-500/20"
+            >
+              <Zap className="w-4 h-4" />
+              <span>Paket Domination Journey</span>
+            </button>
+
             <button
               onClick={() => setViewMode('proposal')}
               className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-md"
             >
-              <FileText className="w-4 h-4 text-amber-400" />
-              <span>Lihat Proposal Media Plan</span>
-            </button>
-            <button
-              onClick={() => {
-                if (activeSpotEvaluations.length > 0) {
-                  onOpenMapTab(activeSpotEvaluations[0].spot);
-                }
-              }}
-              className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-lg shadow-amber-400/20"
-            >
-              <Navigation className="w-4 h-4" />
-              <span>Peta Google Maps ({activeSpotEvaluations.length} Titik)</span>
+              <FileText className="w-4 h-4 text-cyan-400" />
+              <span>Proposal Media Plan</span>
             </button>
           </div>
         </div>
@@ -277,7 +607,7 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
         <div className="mt-5 pt-4 border-t border-slate-800/80 flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1">
             <Briefcase className="w-3.5 h-3.5 text-amber-400" />
-            Preset Merk Populer:
+            Preset Kampanye Klien:
           </span>
           {BRAND_PRESETS.map((preset) => (
             <button
@@ -295,242 +625,229 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
         </div>
       </div>
 
-      {/* Control Setup & Parameters Card */}
+      {/* Control Setup & Parameters Card (Fitur 1, 2, 3) */}
       <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-6 shadow-xl">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
           <div className="flex items-center gap-2">
             <Sliders className="w-4 h-4 text-amber-400" />
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              1. Parameter Profil Merk & Sasaran Kampanye
+              Parameter Algoritma Knapsack & Filter Koridor Mobilitas
             </h3>
           </div>
-          <span className="text-xs text-slate-500 font-mono">
-            {allEvaluatedSpots.length} Titik Reklame Terdaftar di Jabar
-          </span>
+          <div className="flex items-center gap-2">
+            {isDominationJourneyActive && (
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[11px] font-bold font-mono">
+                🚀 Domination Journey Aktif
+              </span>
+            )}
+            {isCustomizingSelection && (
+              <button
+                onClick={handleResetToAutoPackage}
+                className="px-2.5 py-1 text-[11px] bg-slate-950 hover:bg-slate-800 text-amber-400 border border-amber-400/40 rounded-lg transition-colors font-medium"
+              >
+                Reset ke Rekomendasi Algoritma
+              </button>
+            )}
+          </div>
         </div>
 
+        {/* Form Inputs Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {/* Brand Name & Identity */}
+          {/* FITUR 1: FILTER JALUR MOBILITAS */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300 block">
-              Nama Merk / Brand Campaign
+            <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Route className="w-3.5 h-3.5 text-amber-400" />
+                Jalur Mobilitas (Corridor):
+              </span>
             </label>
+            <select
+              value={targetCorridor}
+              onChange={(e) => setTargetCorridor(e.target.value as any)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-medium"
+            >
+              <option value="Semua Jalur">🌐 Semua Jalur Mobilitas</option>
+              <option value="Jalur Komuter (Daily Commuters)">🚗 Jalur Komuter (Tol Pasteur, Pasupati, Soetta)</option>
+              <option value="Jalur Pariwisata (Leisure & Tourism)">🌲 Jalur Pariwisata (Rute Lembang, Ciwidey, Puncak)</option>
+              <option value="Jalur Komersial & Retail (Premium Areas)">🛍️ Jalur Komersial & Retail (Dago, Riau, Braga)</option>
+              <option value="Jalur Logistik & Industri">🚚 Jalur Logistik & Industri (Soetta Timur, Cimahi, KIIC)</option>
+            </select>
+            <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+              <span>Bobot Prioritas Jalur:</span>
+              <span className="font-mono text-amber-400 font-bold">{corridorPriorityWeight}x Multiplier</span>
+            </div>
             <input
-              type="text"
-              value={brandName}
-              onChange={(e) => setBrandName(e.target.value)}
-              placeholder="Contoh: Samsung, Bank BCA, Gojek..."
-              className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              type="range"
+              min="1.0"
+              max="2.5"
+              step="0.1"
+              value={corridorPriorityWeight}
+              onChange={(e) => setCorridorPriorityWeight(parseFloat(e.target.value))}
+              className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-400"
             />
-            <span className="text-[11px] text-slate-500 block">
-              Merk akan disematkan di proposal & evaluasi POI.
-            </span>
           </div>
 
-          {/* Industry Category */}
+          {/* FITUR 2: PEMETAAN PROFIL AUDIENS (SES) */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300 block">
-              Kategori Industri & Sektor
+            <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-cyan-400" />
+                Target Profil SES Audiens:
+              </span>
+              <span className="font-mono text-[11px] text-cyan-300">{sesWeightMultiplier}x Bobot</span>
             </label>
-            <select
-              value={selectedIndustryId}
-              onChange={(e) => {
-                setSelectedIndustryId(e.target.value);
-                setIsCustomizingSelection(false);
-              }}
-              className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-amber-400 cursor-pointer font-medium"
-            >
-              {BRAND_INDUSTRY_PROFILES.map((ind) => (
-                <option key={ind.id} value={ind.id}>
-                  {ind.icon} {ind.name}
-                </option>
-              ))}
-            </select>
-            <span className="text-[11px] text-amber-400/90 block truncate">
-              Ideal POI: {currentIndustry.idealPoiCategories.join(', ')}
-            </span>
-          </div>
-
-          {/* Campaign Placement Goal */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300 block">
-              Tujuan Penempatan Iklan (Objective)
-            </label>
-            <select
-              value={campaignGoal}
-              onChange={(e) => {
-                setCampaignGoal(e.target.value as any);
-                setIsCustomizingSelection(false);
-              }}
-              className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-amber-400 cursor-pointer font-medium"
-            >
-              <option value="awareness">🚀 Jangkauan Massal (Brand Dominance & Reach)</option>
-              <option value="conversion">🛍️ Konversi Ritel & Toko (Proximity to Malls)</option>
-              <option value="dwell">⏱️ Durasi Pandang Tinggi (Traffic Dwell Time)</option>
-              <option value="cpm">💰 Efisiensi Anggaran (Lowest CPM)</option>
-            </select>
-            <span className="text-[11px] text-slate-500 block truncate">
-              {campaignGoal === 'awareness' && 'Fokus volume kontak mata terbesar di tol & arteri.'}
-              {campaignGoal === 'conversion' && 'Fokus kedekatan dengan mall & pusat perbelanjaan.'}
-              {campaignGoal === 'dwell' && 'Fokus durasi tatap lama di simpang lampu merah.'}
-              {campaignGoal === 'cpm' && 'Fokus jumlah titik terbanyak per rupiah investasi.'}
-            </span>
-          </div>
-
-          {/* Target Socio-Economic Status (SES) */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300 block">
-              Target Audiens (SES)
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {(['SES A+', 'SES A', 'SES B', 'SES C'] as const).map((ses) => {
-                const active = selectedSes.includes(ses);
+            
+            <div className="flex items-center gap-2 pt-0.5">
+              {(['SES A', 'SES B', 'SES C'] as const).map((tier) => {
+                const isSelected = selectedSes.includes(tier);
                 return (
                   <button
-                    key={ses}
+                    key={tier}
                     type="button"
                     onClick={() => {
-                      if (active) {
-                        if (selectedSes.length > 1) setSelectedSes(selectedSes.filter(s => s !== ses));
+                      if (isSelected) {
+                        if (selectedSes.length > 1) {
+                          setSelectedSes(selectedSes.filter(t => t !== tier));
+                        }
                       } else {
-                        setSelectedSes([...selectedSes, ses]);
+                        setSelectedSes([...selectedSes, tier]);
                       }
-                      setIsCustomizingSelection(false);
                     }}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
-                      active
-                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/60 shadow-sm'
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold font-mono transition-all border ${
+                      isSelected
+                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow'
                         : 'bg-slate-950 text-slate-500 border-slate-800 hover:text-slate-300'
                     }`}
                   >
-                    {ses}
+                    {tier}
                   </button>
                 );
               })}
             </div>
-            <span className="text-[11px] text-slate-500 block">
-              Disesuaikan dengan daya beli produk merk.
-            </span>
-          </div>
-        </div>
 
-        {/* Budget, Duration & Region Filter Row */}
-        <div className="pt-4 border-t border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Budget Slider */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-slate-300">Alokasi Anggaran Media:</span>
-              <span className="font-mono font-bold text-amber-400 text-sm">
-                Rp {budgetMillions.toLocaleString('id-ID')} Juta
+            <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+              <span>Sensitivitas Demografi:</span>
+              <span className="font-mono text-cyan-400 font-bold">{sesWeightMultiplier}x</span>
+            </div>
+            <input
+              type="range"
+              min="1.0"
+              max="2.0"
+              step="0.1"
+              value={sesWeightMultiplier}
+              onChange={(e) => setSesWeightMultiplier(parseFloat(e.target.value))}
+              className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+            />
+          </div>
+
+          {/* FITUR 3: BUDGET & DURASI (KNAPSACK CAPACITY) */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                Anggaran Kampanye (Kapasitas):
               </span>
+              <span className="font-mono text-emerald-400 font-bold">
+                Rp {budgetMillions} Juta
+              </span>
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="50"
+                max="2000"
+                step="25"
+                value={budgetMillions}
+                onChange={(e) => setBudgetMillions(Math.max(20, parseInt(e.target.value) || 50))}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400 font-mono"
+              />
+              <select
+                value={durationMonths}
+                onChange={(e) => setDurationMonths(parseInt(e.target.value))}
+                className="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-400 font-mono"
+              >
+                <option value="1">1 Bln</option>
+                <option value="3">3 Bln (5% Disc)</option>
+                <option value="6">6 Bln (10% Disc)</option>
+                <option value="12">1 Thn (15% Disc)</option>
+              </select>
             </div>
             <input
               type="range"
               min="50"
-              max="1500"
+              max="1000"
               step="25"
               value={budgetMillions}
-              onChange={(e) => {
-                setBudgetMillions(parseInt(e.target.value, 10));
-                setIsCustomizingSelection(false);
-              }}
-              className="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-amber-400"
+              onChange={(e) => setBudgetMillions(parseInt(e.target.value))}
+              className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-400"
             />
-            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-              <span>Rp 50 Jt</span>
-              <span>Rp 500 Jt</span>
-              <span>Rp 1.0 M</span>
-              <span>Rp 1.5 M</span>
-            </div>
           </div>
 
-          {/* Duration Selector with Discount Badges */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-slate-300">Durasi Kontrak Kampanye:</span>
-              <span className="text-emerald-400 font-bold font-mono">
-                {durationMonths} Bulan {discountFactor < 1 && `(Diskon ${Math.round((1 - discountFactor) * 100)}%)`}
+          {/* TUJUAN KAMPANYE (KNAPSACK OBJECTIVE) */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-purple-400" />
+                Objektif Optimasi (Knapsack Goal):
               </span>
-            </div>
-            <div className="grid grid-cols-4 gap-1.5">
-              {[
-                { months: 1, label: '1 Bln', disc: '' },
-                { months: 3, label: '3 Bln', disc: 'Disc 5%' },
-                { months: 6, label: '6 Bln', disc: 'Disc 10%' },
-                { months: 12, label: '12 Bln', disc: 'Disc 15%' }
-              ].map((opt) => (
-                <button
-                  key={opt.months}
-                  type="button"
-                  onClick={() => setDurationMonths(opt.months)}
-                  className={`p-1.5 rounded-xl border text-center transition-all ${
-                    durationMonths === opt.months
-                      ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow-md'
-                      : 'bg-slate-950 text-slate-400 hover:text-white border-slate-800'
-                  }`}
-                >
-                  <div className="text-xs">{opt.label}</div>
-                  {opt.disc && (
-                    <div className={`text-[9px] ${durationMonths === opt.months ? 'text-slate-950 font-bold' : 'text-emerald-400'}`}>
-                      {opt.disc}
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Regional Geographic Focus */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-slate-300">Fokus Koridor Wilayah:</span>
-              <span className="text-slate-400 text-[11px]">
-                {geoZone === 'all' ? 'Seluruh Jawa Barat' : geoZone.toUpperCase()}
-              </span>
-            </div>
+            </label>
             <select
-              value={geoZone}
-              onChange={(e) => {
-                setGeoZone(e.target.value);
-                setIsCustomizingSelection(false);
-              }}
-              className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-amber-400 cursor-pointer font-medium"
+              value={campaignGoal}
+              onChange={(e) => setCampaignGoal(e.target.value as any)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-400 font-medium"
             >
-              <option value="all">🗺️ Seluruh Jawa Barat (Semua Koridor)</option>
-              <option value="bodebek">⚡ Bodebek Megapolitan (Bekasi, Bogor, Depok)</option>
-              <option value="bandung_raya">🏛️ Bandung Raya (Kota Bandung, Cimahi, dsk)</option>
-              <option value="pantura">🏭 Pantura & Industri (Karawang, Cirebon, Purwakarta)</option>
-              <option value="priangan">🌄 Priangan & Jalur Selatan (Garut, Tasikmalaya, dsk)</option>
+              <option value="awareness">🔥 Jangkauan Massal (Maksimal OTS & VAC)</option>
+              <option value="conversion">🎯 Target Konversi (Dwell Time Lampu Merah)</option>
+              <option value="cpm">💰 Efisiensi Anggaran (Blended CPM Termurah)</option>
+              <option value="dwell">⏱️ Waktu Pandang Ekstrem (Kepadatan Simpang)</option>
             </select>
+
+            <div className="pt-2 flex items-center justify-between text-[11px] text-slate-400">
+              <span>Dominasi Koridor Terpilih:</span>
+              <span className="font-mono text-emerald-400 font-bold">
+                {knapsackResult.corridorDominancePct}%
+              </span>
+            </div>
           </div>
         </div>
+
+        {/* Domination Journey Banner when active */}
+        {isDominationJourneyActive && dominationRationale && (
+          <div className="p-4 bg-amber-400/10 border border-amber-400/40 rounded-xl flex items-start gap-3">
+            <Zap className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <div className="text-xs text-slate-300 leading-relaxed">
+              <strong className="text-amber-300 font-bold block mb-0.5">Strategi Domination Journey Aktif:</strong>
+              {dominationRationale}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Aggregate KPI Performance Ribbon */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
           <div className="flex items-center justify-between text-slate-400 text-[11px] mb-1">
-            <span>TOTAL TITIK</span>
+            <span>TITIK TERPILIH</span>
             <Building2 className="w-3.5 h-3.5 text-amber-400" />
           </div>
           <span className="text-2xl font-bold font-mono text-white">
-            {activeSpotEvaluations.length}
+            {activeSpots.length}
           </span>
           <span className="text-[10px] text-slate-500 block mt-0.5">
-            {isCustomizingSelection ? 'Kustomisasi Pilihan' : 'Paket Terpilih'}
+            {isCustomizingSelection ? 'Kustomisasi Rute' : 'Solusi Knapsack'}
           </span>
         </div>
 
         <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
           <div className="flex items-center justify-between text-slate-400 text-[11px] mb-1">
-            <span>KESELARASAN MERK</span>
-            <Target className="w-3.5 h-3.5 text-emerald-400" />
+            <span>JARAK RUTE TOTAL</span>
+            <Route className="w-3.5 h-3.5 text-amber-400" />
           </div>
-          <span className="text-2xl font-bold font-mono text-emerald-400">
-            {campaignSummaryMetrics.avgMatchScore}%
+          <span className="text-2xl font-bold font-mono text-amber-300">
+            {calculatedTravelRoute.totalDistanceKm} <span className="text-sm">km</span>
           </span>
-          <span className="text-[10px] text-emerald-500/80 block mt-0.5">
-            Skor Keselarasan POI
+          <span className="text-[10px] text-slate-500 block mt-0.5">
+            Estimasi: {calculatedTravelRoute.totalTravelMinutes} menit berkendara
           </span>
         </div>
 
@@ -550,13 +867,13 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
         <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
           <div className="flex items-center justify-between text-slate-400 text-[11px] mb-1">
             <span>NET AUDIENS UNIK</span>
-            <Users className="w-3.5 h-3.5 text-amber-400" />
+            <Users className="w-3.5 h-3.5 text-emerald-400" />
           </div>
-          <span className="text-2xl font-bold font-mono text-amber-400">
+          <span className="text-2xl font-bold font-mono text-emerald-400">
             {(campaignSummaryMetrics.netUniqueReach / 1000000).toFixed(2)}M
           </span>
           <span className="text-[10px] text-slate-500 block mt-0.5">
-            Komuter unik (Freq: {campaignSummaryMetrics.avgFrequency}x)
+            Frekuensi: {campaignSummaryMetrics.avgFrequency}x repetisi
           </span>
         </div>
 
@@ -569,7 +886,7 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
             Rp {campaignSummaryMetrics.blendedCpm.toLocaleString('id-ID')}
           </span>
           <span className="text-[10px] text-slate-500 block mt-0.5">
-            Biaya per 1.000 pasang mata
+            Biaya per 1.000 kontak
           </span>
         </div>
 
@@ -582,15 +899,179 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
             Rp {(campaignSummaryMetrics.totalSpent / 1000000).toFixed(0)} Jt
           </span>
           <span className="text-[10px] text-emerald-400/90 block mt-0.5">
-            Sisa: Rp {(campaignSummaryMetrics.remainingBudget / 1000000).toFixed(0)} Jt
+            Sisa Budget: Rp {(campaignSummaryMetrics.remainingBudget / 1000000).toFixed(0)} Jt
           </span>
         </div>
+      </div>
+
+      {/* TOP 5 REKOMENDASI TITIK PALING EFEKTIF (Kepadatan Lalu Lintas & Konversi Historis) */}
+      <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-4 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 shadow-sm shrink-0">
+              <Award className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-bold text-white tracking-wide uppercase">
+                  Top 5 Titik Reklame Paling Efektif
+                </h4>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Traffic Density & Historical Conversion Engine
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Dihitung otomatis melalui fungsi pembantu kuantitatif berdasarkan kepadatan volume lalu lintas terkini, waktu pandang lampu merah (<em>dwell time</em>), dan rasio konversi historis pengiklan terdahulu.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleApplyTop5Suggestions}
+              className="px-3.5 py-1.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+              title="Terapkan 5 titik rekomendasi ini ke rencana aktif"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Terapkan 5 Titik Ini (1-Klik)</span>
+            </button>
+            <button
+              onClick={() => setShowTop5SuggestionsDrawer(prev => !prev)}
+              className="p-1.5 text-slate-400 hover:text-white bg-slate-950 border border-slate-800 rounded-lg text-xs"
+              title={showTop5SuggestionsDrawer ? 'Sembunyikan' : 'Tampilkan'}
+            >
+              {showTop5SuggestionsDrawer ? 'Tutup' : 'Lihat'}
+            </button>
+          </div>
+        </div>
+
+        {showTop5SuggestionsDrawer && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1">
+            {top5EffectiveSuggestions.map((suggestion) => {
+              const isSelected = activeSpots.some(s => s.id === suggestion.spot.id);
+              const rankColor =
+                suggestion.rank === 1 ? 'border-amber-400/80 bg-amber-400/10 text-amber-300' :
+                suggestion.rank === 2 ? 'border-slate-300/80 bg-slate-300/10 text-slate-200' :
+                suggestion.rank === 3 ? 'border-amber-600/80 bg-amber-600/10 text-amber-500' :
+                'border-slate-700 bg-slate-800/40 text-slate-400';
+
+              return (
+                <div
+                  key={suggestion.spot.id}
+                  className={`p-3.5 bg-slate-950/80 border rounded-xl flex flex-col justify-between transition-all hover:border-amber-400/50 ${
+                    isSelected ? 'ring-2 ring-amber-400 border-amber-400 bg-slate-950' : 'border-slate-800'
+                  }`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${rankColor}`}>
+                        #{suggestion.rank} {suggestion.rank === 1 ? '🏆 Top Pick' : suggestion.rank === 2 ? '🥈 Rank 2' : suggestion.rank === 3 ? '🥉 Rank 3' : `Peringkat ${suggestion.rank}`}
+                      </span>
+                      <span className="text-[10px] font-mono text-cyan-400 font-bold">
+                        {suggestion.compositeEffectivenessScore}/100
+                      </span>
+                    </div>
+
+                    <div>
+                      <h5 className="font-bold text-white text-xs line-clamp-1" title={suggestion.spot.name}>
+                        {suggestion.spot.name}
+                      </h5>
+                      <div className="text-[10px] text-slate-400 truncate">
+                        {suggestion.spot.roadName}, {suggestion.spot.regency}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 pt-1 text-[10px] font-mono">
+                      <div className="p-1.5 bg-slate-900 rounded-lg flex items-center justify-between">
+                        <span className="text-slate-400">Kepadatan:</span>
+                        <strong className="text-emerald-400">{suggestion.trafficDensityScore}/100</strong>
+                      </div>
+                      <div className="p-1.5 bg-slate-900 rounded-lg flex items-center justify-between">
+                        <span className="text-slate-400">Konversi Hist:</span>
+                        <strong className="text-amber-400">{suggestion.historicalConversionRatePct}%</strong>
+                      </div>
+                      <div className="text-[9px] text-slate-500 leading-tight">
+                        {suggestion.dailyTrafficVolume.toLocaleString('id-ID')} DGR · {suggestion.avgDwellTimeSec}s dwell
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center gap-1.5">
+                    <button
+                      onClick={() => onOpenDetailModal(suggestion.spot)}
+                      className="flex-1 py-1 text-[10px] text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-lg transition-colors font-medium"
+                    >
+                      Detail
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedSpotForMap(suggestion.spot);
+                        setViewMode('route_map');
+                      }}
+                      className="p-1 text-slate-300 hover:text-amber-400 bg-slate-900 border border-slate-800 rounded-lg"
+                      title="Lihat di Peta Rute"
+                    >
+                      <MapPin className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Main Content Area: View Mode Navigation */}
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 p-2 bg-slate-900 border border-slate-800 rounded-xl">
           <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => {
+                setViewMode('route_map');
+                setIsInspectionMode(false);
+              }}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
+                viewMode === 'route_map' && !isInspectionMode
+                  ? 'bg-amber-400 text-slate-950 font-bold shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Navigation className="w-3.5 h-3.5" />
+              <span>Peta Rute OOH</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setViewMode('budget_optimization');
+                setIsInspectionMode(false);
+              }}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 border ${
+                viewMode === 'budget_optimization'
+                  ? 'bg-amber-400 text-slate-950 font-black border-amber-300 shadow-md ring-2 ring-amber-400/40'
+                  : 'bg-slate-950 text-amber-300 hover:text-amber-200 border-amber-400/40 hover:bg-slate-900'
+              }`}
+              title="Optimasi Alokasi Anggaran Belanja Media (OOH · Digital · BTL) berdasarkan Profil Target Audiens"
+            >
+              <Calculator className="w-3.5 h-3.5 text-amber-400" />
+              <span>Budget Optimization (OOH·Digital·BTL)</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setViewMode('route_map');
+                setIsInspectionMode(true);
+              }}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
+                viewMode === 'route_map' && isInspectionMode
+                  ? 'bg-amber-400 text-slate-950 font-bold shadow-md ring-2 ring-amber-400/40'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+              title="Urutan kunjungan tim lapangan paling efisien dengan rute polyline Google Maps"
+            >
+              <ClipboardCheck className="w-3.5 h-3.5 text-amber-400" />
+              <span>Rute Inspeksi Tim Lapangan</span>
+            </button>
+
             <button
               onClick={() => setViewMode('cards')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
@@ -600,19 +1081,7 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Daftar Rekomendasi Titik & POI</span>
-            </button>
-
-            <button
-              onClick={() => setViewMode('spatial_map')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
-                viewMode === 'spatial_map'
-                  ? 'bg-amber-400 text-slate-950 font-bold shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <Compass className="w-3.5 h-3.5" />
-              <span>Pemetaan Spasial Jawa Barat</span>
+              <span>Daftar Titik & POI</span>
             </button>
 
             <button
@@ -624,7 +1093,7 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
-              <span>Matriks Analisis POI & Impresi</span>
+              <span>Matriks Knapsack</span>
             </button>
 
             <button
@@ -636,288 +1105,280 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
               }`}
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Proposal Media Plan Eksekutif</span>
+              <span>Proposal Media Plan</span>
             </button>
           </div>
 
           <div className="flex items-center gap-2">
-            {isCustomizingSelection && (
-              <button
-                onClick={handleResetToAutoPackage}
-                className="px-2.5 py-1 text-[11px] bg-slate-950 hover:bg-slate-800 text-amber-400 border border-amber-400/40 rounded-lg transition-colors font-medium"
-              >
-                Reset ke Rekomendasi Otomatis
-              </button>
-            )}
-
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input
-                type="text"
-                placeholder="Cari jalan atau POI..."
-                value={searchSpotQuery}
-                onChange={(e) => setSearchSpotQuery(e.target.value)}
-                className="pl-8 pr-3 py-1 text-xs bg-slate-950 border border-slate-800 rounded-lg text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400 w-44 sm:w-56"
-              />
-            </div>
+            {/* ROUTE TOGGLE IN NAV BAR */}
+            <button
+              onClick={() => setShowRoutePath(prev => !prev)}
+              className={`px-3 py-1 text-xs rounded-lg font-bold border transition-colors flex items-center gap-1.5 ${
+                showRoutePath
+                  ? 'bg-amber-400/20 text-amber-300 border-amber-400/50'
+                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+              }`}
+            >
+              <Route className="w-3.5 h-3.5" />
+              <span>{showRoutePath ? 'Polyline: ON' : 'Polyline: OFF'}</span>
+            </button>
           </div>
         </div>
 
-        {/* VIEW 1: Cards & POI Detail List */}
-        {viewMode === 'cards' && (
+        {/* VIEW 1: INTERACTIVE ROUTE MAP & TRAVEL PATH FINDER */}
+        {viewMode === 'route_map' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between text-xs text-slate-400 px-1">
-              <span>
-                Menampilkan urutan titik berdasarkan <strong>Skor Keselarasan POI ({currentIndustry.name})</strong>:
-              </span>
-              <span className="font-mono text-emerald-400">
-                {activeSpotEvaluations.length} Titik Masuk Paket Anggaran
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {allEvaluatedSpots
-                .filter(item => {
-                  if (!searchSpotQuery.trim()) return true;
-                  const q = searchSpotQuery.toLowerCase();
-                  const matchName = item.spot.name.toLowerCase().includes(q);
-                  const matchRoad = item.spot.roadName.toLowerCase().includes(q);
-                  const matchReg = item.spot.regency.toLowerCase().includes(q);
-                  const matchPoi = item.pois.some(p => p.name.toLowerCase().includes(q));
-                  return matchName || matchRoad || matchReg || matchPoi;
-                })
-                .map((evalItem) => {
-                  const isSelected = activeSpotEvaluations.some(s => s.spot.id === evalItem.spot.id);
-
-                  return (
-                    <div
-                      key={evalItem.spot.id}
-                      className={`p-5 rounded-2xl border transition-all flex flex-col justify-between ${
-                        isSelected
-                          ? 'bg-slate-900 border-amber-400/60 shadow-xl shadow-amber-400/5 ring-1 ring-amber-400/30'
-                          : 'bg-slate-950/70 border-slate-800 opacity-80 hover:opacity-100 hover:border-slate-700'
-                      }`}
-                    >
-                      <div>
-                        {/* Header Badges */}
-                        <div className="flex items-start justify-between gap-2 mb-3">
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-mono text-xs font-bold text-amber-400">{evalItem.spot.code}</span>
-                              <span className="text-slate-600">·</span>
-                              <span className="text-xs text-slate-300 font-semibold">{evalItem.spot.regency}</span>
-                            </div>
-                            <h4 className="text-base font-bold text-white mt-0.5 leading-snug">
-                              {evalItem.spot.name}
-                            </h4>
-                            <p className="text-xs text-slate-400 mt-0.5">{evalItem.spot.roadName}</p>
-                          </div>
-
-                          <div className="flex flex-col items-end gap-1 shrink-0">
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold border ${
-                              evalItem.overallMatchScore >= 90
-                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                                : evalItem.overallMatchScore >= 80
-                                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/40'
-                                : 'bg-amber-500/20 text-amber-300 border-amber-400/40'
-                            }`}>
-                              🎯 {evalItem.overallMatchScore}% Match
-                            </span>
-                            <span className="text-[10px] text-slate-500 font-medium">
-                              {evalItem.recommendedTag}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Rationale Callout */}
-                        <div className="p-3 bg-slate-950/80 border border-slate-800/80 rounded-xl text-xs text-slate-300 mb-3.5 leading-relaxed">
-                          <span className="font-semibold text-amber-400 block mb-0.5">Analisis Sasaran Merk:</span>
-                          {evalItem.strategicRationale}
-                        </div>
-
-                        {/* Point of Interest (POI) Proximity Chips */}
-                        <div className="space-y-1.5 mb-3.5">
-                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                            Point of Interest (POI) Terdekat:
-                          </span>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                            {evalItem.pois.slice(0, 4).map(poi => {
-                              const isIdeal = currentIndustry.idealPoiCategories.includes(poi.category);
-                              return (
-                                <div
-                                  key={poi.id}
-                                  className={`p-2 rounded-lg border text-xs flex items-start gap-1.5 ${
-                                    isIdeal
-                                      ? 'bg-amber-400/10 border-amber-400/30 text-amber-200'
-                                      : 'bg-slate-950 border-slate-800 text-slate-400'
-                                  }`}
-                                >
-                                  <MapPin className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${isIdeal ? 'text-amber-400' : 'text-slate-500'}`} />
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex items-center justify-between gap-1">
-                                      <span className="font-bold text-slate-200 truncate text-[11px]">{poi.name}</span>
-                                      <span className="font-mono text-[9px] text-amber-400 font-semibold shrink-0">{poi.distanceMeters}m</span>
-                                    </div>
-                                    <span className="text-[10px] text-slate-500 block truncate">{poi.category}</span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {/* Impressions & Traffic Metrics */}
-                        <div className="grid grid-cols-3 gap-2 p-3 bg-slate-950/90 border border-slate-800 rounded-xl text-center font-mono mb-4">
-                          <div>
-                            <span className="text-[10px] text-slate-500 block">VAC HARIAN</span>
-                            <span className="text-xs font-bold text-emerald-400">
-                              {evalItem.spot.vacDaily.toLocaleString('id-ID')}
-                            </span>
-                            <span className="text-[9px] text-slate-600 block">kontak mata</span>
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-slate-500 block">DWELL TIME</span>
-                            <span className="text-xs font-bold text-amber-400">
-                              {evalItem.spot.avgDwellTimeSec}s
-                            </span>
-                            <span className="text-[9px] text-slate-600 block">{evalItem.spot.avgSpeedKmh} km/jam</span>
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-slate-500 block">CPM EFENTIF</span>
-                            <span className="text-xs font-bold text-purple-400">
-                              Rp {evalItem.effectiveCpmIdr.toLocaleString('id-ID')}
-                            </span>
-                            <span className="text-[9px] text-slate-600 block">per 1.000 VAC</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Footer Actions */}
-                      <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
-                        <div>
-                          <span className="text-[10px] text-slate-500 block">Biaya Penempatan ({durationMonths} bln):</span>
-                          <span className="text-sm font-bold font-mono text-white">
-                            Rp {(evalItem.costEstimateIdr / 1000000).toFixed(1)} Juta
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => onOpenDetailModal(evalItem.spot)}
-                            className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-colors"
-                          >
-                            Detail
-                          </button>
-
-                          <button
-                            onClick={() => handleToggleSpotInPackage(evalItem.spot.id)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                              isSelected
-                                ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-400/20'
-                                : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
-                            }`}
-                          >
-                            {isSelected ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : null}
-                            <span>{isSelected ? 'Masuk Paket' : '+ Tambah'}</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        )}
-
-        {/* VIEW 2: Spatial Map Placement View */}
-        {viewMode === 'spatial_map' && (
-          <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
-              <div>
-                <h4 className="text-base font-bold text-white flex items-center gap-2">
-                  <Compass className="w-4 h-4 text-amber-400" />
-                  <span>Pemetaan Persebaran Spasial Rekomendasi Titik Jawa Barat</span>
-                </h4>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Visualisasi koridor persebaran billboard yang dipilih untuk kampanye merk <strong>{brandName}</strong>.
-                </p>
-              </div>
-
-              <button
-                onClick={() => {
-                  if (activeSpotEvaluations.length > 0) {
-                    onOpenMapTab(activeSpotEvaluations[0].spot);
-                  }
-                }}
-                className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-lg shadow-amber-400/20"
-              >
-                <Navigation className="w-4 h-4" />
-                <span>Buka di Google Maps Interaktif Penuh</span>
-              </button>
-            </div>
-
-            {/* Spatial Grid Cards Map Representation */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {activeSpotEvaluations.map((evalItem, idx) => (
-                <div
-                  key={evalItem.spot.id}
-                  onClick={() => onOpenDetailModal(evalItem.spot)}
-                  className="p-4 bg-slate-950 border border-slate-800 hover:border-amber-400/50 rounded-xl cursor-pointer transition-all hover:bg-slate-950/80 group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                      Titik #{idx + 1}
-                    </span>
-                    <span className="text-xs font-mono font-bold text-emerald-400">
-                      🎯 {evalItem.overallMatchScore}% Match
-                    </span>
+            {/* Inspection KPI Ribbon when in Field Inspection Mode */}
+            {isInspectionMode && (
+              <div className="p-4 bg-gradient-to-r from-amber-500/10 via-slate-900 to-amber-500/5 border border-amber-400/40 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-xl">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
+                    <ClipboardCheck className="w-5 h-5" />
                   </div>
-
-                  <h5 className="text-sm font-bold text-white group-hover:text-amber-300 transition-colors">
-                    {evalItem.spot.name}
-                  </h5>
-                  <p className="text-xs text-slate-400 mt-0.5">{evalItem.spot.roadName}, {evalItem.spot.regency}</p>
-
-                  <div className="mt-3 pt-3 border-t border-slate-900 space-y-1.5 text-xs">
-                    <div className="flex items-center justify-between text-slate-400">
-                      <span>POI Kunci:</span>
-                      <span className="text-slate-200 font-medium truncate max-w-[180px]">
-                        {evalItem.pois[0]?.name || 'Koridor Utama'}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-white uppercase tracking-wide">
+                        Jadwal & Urutan Kunjungan Tim Lapangan (Field Technical Inspection)
+                      </h4>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-400 text-slate-950">
+                        TSP 2-Opt Algorithm
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-slate-400">
-                      <span>Impresi Bulanan:</span>
-                      <span className="font-mono text-cyan-400 font-bold">
-                        {evalItem.monthlyVac.toLocaleString('id-ID')} VAC
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-400">
-                      <span>Investasi:</span>
-                      <span className="font-mono text-white font-bold">
-                        Rp {(evalItem.costEstimateIdr / 1000000).toFixed(1)} Jt
-                      </span>
-                    </div>
+                    <p className="text-xs text-slate-400 mt-1 max-w-3xl">
+                      {fieldInspectionPlan.inspectionRationale}
+                    </p>
                   </div>
                 </div>
-              ))}
+
+                <div className="flex flex-wrap items-center gap-2 font-mono text-xs shrink-0">
+                  <div className="p-2 px-3 bg-slate-950/90 border border-slate-800 rounded-xl text-center">
+                    <span className="text-[10px] text-slate-400 block">Jarak Kemudi</span>
+                    <strong className="text-amber-400">{fieldInspectionPlan.totalDrivingKm} km</strong>
+                  </div>
+                  <div className="p-2 px-3 bg-slate-950/90 border border-slate-800 rounded-xl text-center">
+                    <span className="text-[10px] text-slate-400 block">Waktu Kemudi</span>
+                    <strong className="text-cyan-400">{fieldInspectionPlan.totalDrivingMinutes} mnt</strong>
+                  </div>
+                  <div className="p-2 px-3 bg-slate-950/90 border border-slate-800 rounded-xl text-center">
+                    <span className="text-[10px] text-slate-400 block">Audit Fisik</span>
+                    <strong className="text-emerald-400">{fieldInspectionPlan.totalInspectionMinutes} mnt</strong>
+                  </div>
+                  <div className="p-2 px-3 bg-slate-950/90 border border-slate-800 rounded-xl text-center">
+                    <span className="text-[10px] text-slate-400 block">Total Shift</span>
+                    <strong className="text-purple-400">{fieldInspectionPlan.totalShiftHours} jam</strong>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <CampaignRouteMap
+              spots={activeSpots}
+              route={isInspectionMode ? fieldInspectionPlan.routeData : calculatedTravelRoute}
+              showRoutePath={showRoutePath}
+              onToggleRoutePath={() => setShowRoutePath(prev => !prev)}
+              selectedSpot={selectedSpotForMap}
+              onSelectSpot={setSelectedSpotForMap}
+              startSpotId={startSpotId}
+              onChangeStartSpot={setStartSpotId}
+              onOpenDetailModal={onOpenDetailModal}
+              isFieldInspectionMode={isInspectionMode}
+            />
+
+            {/* Field Team Inspection Audit Checklist Cards */}
+            {isInspectionMode && fieldInspectionPlan.orderedSpots.length > 0 && (
+              <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-4 shadow-xl">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Wrench className="w-4 h-4 text-amber-400" />
+                    <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+                      Lembar Panduan Checklist Inspeksi Fisik Lapangan
+                    </h4>
+                  </div>
+                  <span className="text-xs text-slate-400 font-mono">
+                    {fieldInspectionPlan.totalSpotsCount} Titik Reklame Terjadwal
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {fieldInspectionPlan.orderedSpots.map((spot, idx) => {
+                    const isLed = spot.type.includes('LED') || spot.type.includes('Mega');
+                    return (
+                      <div
+                        key={spot.id}
+                        className="p-4 bg-slate-950 border border-slate-800/80 rounded-xl space-y-2 hover:border-amber-400/40 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-400/10 text-amber-300 border border-amber-400/30">
+                            Stop #{idx + 1} ({isLed ? '25 mnt audit' : '15 mnt audit'})
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            {spot.code}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h5 className="font-bold text-xs text-white line-clamp-1">{spot.name}</h5>
+                          <p className="text-[11px] text-slate-400 truncate">{spot.roadName}, {spot.regency}</p>
+                        </div>
+
+                        <ul className="text-[10px] space-y-1 text-slate-300 pt-1 border-t border-slate-800/60 font-mono">
+                          <li className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                            <span>{isLed ? 'Test Modul LED, dead-pixel & lux malam' : 'Cek ketegangan vinyl & lampu sorot'}</span>
+                          </li>
+                          <li className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                            <span>Kekokohan tiang monopole & baut angkur pondasi</span>
+                          </li>
+                          <li className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
+                            <span>Bebas halangan ranting pohon & kabel udara PLN</span>
+                          </li>
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* VIEW: BUDGET OPTIMIZATION TOOL */}
+        {viewMode === 'budget_optimization' && (
+          <BudgetOptimizationTool
+            spots={spots}
+            initialBudgetMillions={budgetMillions}
+            onApplyAllocationToPlanner={(optResult) => {
+              // Apply recommended matching OOH spots to active selection
+              const matchingIds = optResult.suggestedMatchingSpots.map(s => s.id);
+              if (matchingIds.length > 0) {
+                setManualSelectedSpotIds(matchingIds);
+                setIsCustomizingSelection(true);
+              }
+            }}
+            onSelectSpot={(spot) => {
+              setSelectedSpotForMap(spot);
+              onOpenDetailModal(spot);
+            }}
+          />
+        )}
+
+        {/* VIEW 2: CARDS LIST */}
+        {viewMode === 'cards' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs text-slate-400">
+                Menampilkan <strong>{allEvaluatedSpots.length}</strong> titik yang sesuai kriteria penempatan.
+              </span>
+              <span className="text-xs font-mono text-amber-400 font-bold">
+                {activeSpots.length} Titik Masuk Rute
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {allEvaluatedSpots.map((evalItem) => {
+                const isSelected = activeSpots.some(s => s.id === evalItem.spot.id);
+                const corridor = getSpotMobilityCorridor(evalItem.spot);
+
+                return (
+                  <div
+                    key={evalItem.spot.id}
+                    className={`p-5 rounded-2xl border transition-all flex flex-col justify-between ${
+                      isSelected
+                        ? 'bg-slate-900 border-amber-400/60 shadow-xl shadow-amber-400/5 ring-1 ring-amber-400/30'
+                        : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300">
+                          {evalItem.spot.code}
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/10 text-amber-300 border border-amber-400/30">
+                          {corridor}
+                        </span>
+                      </div>
+
+                      <h4 className="font-bold text-white text-base leading-snug">{evalItem.spot.name}</h4>
+                      <p className="text-xs text-slate-400 mt-1">{evalItem.spot.roadName}, {evalItem.spot.regency}</p>
+
+                      {/* POI Tagging */}
+                      <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-1 text-xs">
+                        <div className="text-[11px] text-slate-400">
+                          POI Sekitar: <span className="text-slate-200">{evalItem.pois.map(p => `${p.name} (${p.distanceMeters}m)`).join(', ')}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-400">
+                          Profil SES: <strong className="text-cyan-400">{evalItem.spot.targetDemographics}</strong>
+                        </div>
+                      </div>
+
+                      {/* Metrics */}
+                      <div className="grid grid-cols-3 gap-2 mt-3 p-2.5 bg-slate-950 rounded-xl text-center font-mono text-[10px]">
+                        <div>
+                          <span className="text-slate-500 block">VAC HARIAN</span>
+                          <span className="text-emerald-400 font-bold">{evalItem.spot.vacDaily.toLocaleString('id-ID')}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 block">DWELL TIME</span>
+                          <span className="text-amber-400 font-bold">{evalItem.spot.avgDwellTimeSec}s</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 block">CPM</span>
+                          <span className="text-purple-400 font-bold">Rp {evalItem.effectiveCpmIdr.toLocaleString('id-ID')}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] text-slate-500 block">Tarif Penempatan:</span>
+                        <span className="text-sm font-bold font-mono text-white">
+                          Rp {(evalItem.costEstimateIdr / 1000000).toFixed(1)} Jt
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => onOpenDetailModal(evalItem.spot)}
+                          className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold"
+                        >
+                          Detail
+                        </button>
+                        <button
+                          onClick={() => handleToggleSpotInPackage(evalItem.spot.id)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                            isSelected
+                              ? 'bg-amber-400 text-slate-950 shadow-md'
+                              : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                          }`}
+                        >
+                          {isSelected ? <Check className="w-3.5 h-3.5" /> : null}
+                          <span>{isSelected ? 'Terpilih' : '+ Masukkan'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
 
-        {/* VIEW 3: POI & Metrics Comparison Matrix */}
+        {/* VIEW 3: KNAPSACK & CORRIDOR COMPARISON MATRIX */}
         {viewMode === 'matrix' && (
           <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
             <div className="p-4 border-b border-slate-800 flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-                  Matriks Perbandingan Titik Reklame & Point of Interest (POI)
+                  Matriks Optimasi Knapsack & Profil Jalur Mobilitas
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Tinjauan komprehensif metrik performa OOH untuk kampanye {brandName}.
+                  Evaluasi rasio efisiensi skor tertimbang terhadap biaya penempatan.
                 </p>
               </div>
               <span className="text-xs font-mono text-emerald-400 font-bold">
-                {activeSpotEvaluations.length} Titik Terseleksi
+                {knapsackResult.selectedSpots.length} Titik Direkomendasikan
               </span>
             </div>
 
@@ -925,81 +1386,85 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
               <table className="w-full text-left text-xs text-slate-300">
                 <thead className="bg-slate-950 text-slate-400 uppercase font-mono text-[10px] border-b border-slate-800">
                   <tr>
-                    <th className="p-3">Kode & Nama Titik</th>
-                    <th className="p-3">Wilayah & Jalan</th>
-                    <th className="p-3">Format</th>
-                    <th className="p-3">Point of Interest (POI) Sekitar</th>
+                    <th className="p-3">Titik Reklame</th>
+                    <th className="p-3">Klasifikasi Jalur Mobilitas</th>
+                    <th className="p-3">Target Demografi SES</th>
                     <th className="p-3 text-right">VAC Harian</th>
-                    <th className="p-3 text-right">Dwell Time</th>
-                    <th className="p-3 text-right">CPM (IDR)</th>
-                    <th className="p-3 text-right">Match</th>
-                    <th className="p-3 text-right">Tarif Paket</th>
+                    <th className="p-3 text-right">Biaya (Jt)</th>
+                    <th className="p-3 text-right">Bobot Koridor</th>
+                    <th className="p-3 text-right">Bobot SES</th>
+                    <th className="p-3 text-right">Skor Tertimbang</th>
+                    <th className="p-3 text-right">Status Seleksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 font-sans">
-                  {activeSpotEvaluations.map((item) => (
-                    <tr key={item.spot.id} className="hover:bg-slate-950/60 transition-colors">
-                      <td className="p-3 font-medium">
-                        <div className="font-mono text-amber-400 font-bold">{item.spot.code}</div>
-                        <div className="text-white font-semibold">{item.spot.name}</div>
-                      </td>
-                      <td className="p-3">
-                        <div className="text-slate-200">{item.spot.regency}</div>
-                        <div className="text-slate-500 text-[11px]">{item.spot.roadName}</div>
-                      </td>
-                      <td className="p-3">
-                        <span className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[11px] font-medium">
-                          {item.spot.type}
-                        </span>
-                      </td>
-                      <td className="p-3 max-w-xs">
-                        <div className="space-y-0.5">
-                          {item.pois.slice(0, 2).map(p => (
-                            <div key={p.id} className="text-[11px] text-slate-300 truncate">
-                              • <span className="text-amber-400">{p.name}</span> ({p.distanceMeters}m)
-                            </div>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="p-3 text-right font-mono font-bold text-emerald-400">
-                        {item.spot.vacDaily.toLocaleString('id-ID')}
-                      </td>
-                      <td className="p-3 text-right font-mono text-amber-400">
-                        {item.spot.avgDwellTimeSec}s
-                      </td>
-                      <td className="p-3 text-right font-mono text-purple-400">
-                        Rp {item.effectiveCpmIdr.toLocaleString('id-ID')}
-                      </td>
-                      <td className="p-3 text-right font-mono font-bold text-cyan-400">
-                        {item.overallMatchScore}%
-                      </td>
-                      <td className="p-3 text-right font-mono font-bold text-white">
-                        Rp {(item.costEstimateIdr / 1000000).toFixed(1)} Jt
-                      </td>
-                    </tr>
-                  ))}
+                  {knapsackResult.itemEvaluations.map((item) => {
+                    const isSelected = activeSpots.some(s => s.id === item.spot.id);
+                    return (
+                      <tr key={item.spot.id} className={isSelected ? 'bg-amber-400/5' : 'hover:bg-slate-950/40'}>
+                        <td className="p-3">
+                          <div className="font-mono text-amber-400 font-bold">{item.spot.code}</div>
+                          <div className="text-white font-semibold">{item.spot.name}</div>
+                          <div className="text-slate-500 text-[11px]">{item.spot.roadName}</div>
+                        </td>
+                        <td className="p-3">
+                          <span className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[11px] font-medium">
+                            {item.corridorType}
+                          </span>
+                        </td>
+                        <td className="p-3 text-slate-300">
+                          {item.spot.targetDemographics}
+                        </td>
+                        <td className="p-3 text-right font-mono font-bold text-emerald-400">
+                          {item.spot.vacDaily.toLocaleString('id-ID')}
+                        </td>
+                        <td className="p-3 text-right font-mono text-white font-bold">
+                          Rp {item.costMillions} Jt
+                        </td>
+                        <td className="p-3 text-right font-mono text-amber-400 font-bold">
+                          {item.corridorBonus}x
+                        </td>
+                        <td className="p-3 text-right font-mono text-cyan-400 font-bold">
+                          {item.sesBonus.toFixed(2)}x
+                        </td>
+                        <td className="p-3 text-right font-mono text-purple-300 font-bold">
+                          {item.weightedScore}
+                        </td>
+                        <td className="p-3 text-right">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              isSelected
+                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                : 'bg-slate-800 text-slate-500'
+                            }`}
+                          >
+                            {isSelected ? '✓ Terpilih Knapsack' : 'Di Luar Kapasitas'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
-        {/* VIEW 4: Executive Media Plan Proposal (Siap Cetak / Presentasi Klien) */}
+        {/* VIEW 4: EXECUTIVE MEDIA PLAN PROPOSAL & EXPORT FACTSHEET */}
         {viewMode === 'proposal' && (
           <div className="p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl space-y-6 text-slate-200 print:bg-white print:text-black">
-            {/* Proposal Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
               <div>
                 <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400 block mb-1">
-                  OFFICIAL MEDIA PLANNING PROPOSAL · PROVINSI JAWA BARAT
+                  CV BANDUNG MEDIA OUTDOOR · OOH STRATEGIC FACTSHEET
                 </span>
                 <h3 className="text-2xl font-bold text-white">
-                  Rencana Penempatan Media Reklame Luar Ruang (OOH/DOOH)
+                  Proposal Rencana Penempatan Reklame Koridor Mobilitas
                 </h3>
                 <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-400">
-                  <span className="font-semibold text-slate-200">Klien Merk: {brandName}</span>
+                  <span className="font-semibold text-slate-200">Klien: {brandName}</span>
                   <span>·</span>
-                  <span>Sektor: {currentIndustry.name}</span>
+                  <span>Jalur Target: {targetCorridor}</span>
                   <span>·</span>
                   <span>Durasi: {durationMonths} Bulan</span>
                 </div>
@@ -1008,24 +1473,25 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => window.print()}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-700"
+                  className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-lg shadow-amber-400/20"
                 >
-                  <Printer className="w-4 h-4 text-amber-400" />
-                  <span>Cetak / Simpan PDF</span>
+                  <Printer className="w-4 h-4" />
+                  <span>Cetak / Ekspor PDF Factsheet</span>
                 </button>
               </div>
             </div>
 
-            {/* Executive Summary Box */}
+            {/* Proposal Summary Metrics */}
             <div className="p-5 bg-slate-950/80 border border-slate-800 rounded-xl space-y-2 text-xs leading-relaxed">
               <h4 className="font-bold text-white uppercase tracking-wider flex items-center gap-1.5 text-xs">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Ringkasan Eksekutif Penempatan</span>
+                <span>Ringkasan Strategis Perjalanan Audien (Customer Journey)</span>
               </h4>
               <p className="text-slate-300">
-                Proposal ini dirancang khusus untuk memperkuat dominasi merk <strong>{brandName}</strong> di koridor-koridor paling strategis Jawa Barat. Pemilihan titik mengadopsi algoritma kedekatan <em>Point of Interest (POI)</em> ke pusat perbelanjaan, perkantoran, dan simpul transit dengan konsentrasi target audiens <strong>{selectedSes.join(', ')}</strong>.
+                Paket media reklame ini dirancang khusus untuk menciptakan dominasi visual beruntun sepanjang jalur <strong>{targetCorridor}</strong> dengan total jarak rute <strong>{calculatedTravelRoute.totalDistanceKm} km</strong>. Dengan algoritma Knapsack teroptimasi, penempatan ini memastikan tingkat paparan (OTS/VAC) maksimal pada target profil <strong>{selectedSes.join(', ')}</strong> dengan efisiensi anggaran tertinggi.
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 mt-3 border-t border-slate-800/80 font-mono text-center">
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 mt-3 border-t border-slate-800 font-mono text-center">
                 <div>
                   <span className="text-[10px] text-slate-500 block">TOTAL IMPRESI MATA</span>
                   <span className="text-base font-bold text-cyan-400">
@@ -1033,15 +1499,15 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 block">NET KOMUTER UNIK</span>
+                  <span className="text-[10px] text-slate-500 block">TOTAL JARAK JALUR</span>
                   <span className="text-base font-bold text-amber-400">
-                    {campaignSummaryMetrics.netUniqueReach.toLocaleString('id-ID')} Jiwa
+                    {calculatedTravelRoute.totalDistanceKm} km
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 block">GROSS RATING POINTS (GRP)</span>
+                  <span className="text-[10px] text-slate-500 block">REPETISI EFEKTIF</span>
                   <span className="text-base font-bold text-emerald-400">
-                    {campaignSummaryMetrics.grp} GRP
+                    {campaignSummaryMetrics.avgFrequency}x Paparan
                   </span>
                 </div>
                 <div>
@@ -1053,60 +1519,121 @@ export function CampaignPlanner({ spots, onOpenMapTab, onOpenDetailModal }: Camp
               </div>
             </div>
 
-            {/* Selected Spots Breakdown */}
+            {/* Sequential Spots List */}
             <div className="space-y-3">
               <h4 className="font-bold text-white uppercase tracking-wider text-xs">
-                Daftar Lokasi Rekomendasi Terpilih ({activeSpotEvaluations.length} Titik)
+                Urutan Penempatan Reklame Sepanjang Rute ({calculatedTravelRoute.orderedSpots.length} Titik)
               </h4>
 
-              <div className="space-y-2.5">
-                {activeSpotEvaluations.map((item, idx) => (
-                  <div key={item.spot.id} className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-amber-400">#{idx + 1} {item.spot.code}</span>
-                        <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-800 text-slate-300 font-semibold">{item.spot.type}</span>
-                        <span className="text-emerald-400 font-mono font-bold">🎯 {item.overallMatchScore}% Match</span>
-                      </div>
-                      <h5 className="font-bold text-white mt-0.5">{item.spot.name}</h5>
-                      <p className="text-slate-400 text-[11px]">{item.spot.roadName}, {item.spot.regency}</p>
-                      <div className="text-slate-500 text-[11px] mt-1">
-                        POI Terdekat: <span className="text-slate-300">{item.pois.map(p => `${p.name} (${p.distanceMeters}m)`).join(', ')}</span>
+              <div className="space-y-2">
+                {calculatedTravelRoute.orderedSpots.map((spot, idx) => (
+                  <div key={spot.id} className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-mono font-bold flex items-center justify-center text-xs shrink-0">
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <div className="font-bold text-white">{spot.name} ({spot.code})</div>
+                        <div className="text-slate-400 text-[11px]">{spot.roadName}, {spot.regency} · {spot.type}</div>
                       </div>
                     </div>
 
-                    <div className="sm:text-right font-mono shrink-0">
-                      <div className="text-slate-400 text-[11px]">VAC Harian: <strong className="text-emerald-400">{item.spot.vacDaily.toLocaleString('id-ID')}</strong></div>
-                      <div className="text-slate-400 text-[11px]">Dwell Time: <strong className="text-amber-400">{item.spot.avgDwellTimeSec} detik</strong></div>
-                      <div className="text-white font-bold text-sm mt-0.5">
-                        Rp {(item.costEstimateIdr / 1000000).toFixed(1)} Juta ({durationMonths} bln)
-                      </div>
+                    <div className="text-right font-mono shrink-0">
+                      <div className="text-emerald-400 font-bold">{spot.vacDaily.toLocaleString('id-ID')} VAC/hari</div>
+                      <div className="text-white text-xs">Rp {(spot.ratePerMonthIdr / 1000000).toFixed(0)} Jt/bln</div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Terms and Acceptance Footer */}
-            <div className="pt-6 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 text-xs text-slate-400">
+            {/* Factsheet Signoff */}
+            <div className="pt-6 border-t border-slate-800 flex justify-between items-end text-xs text-slate-400">
               <div>
-                <span className="font-bold text-slate-200 block mb-1">Ketentuan & Jaminan Penempatan:</span>
-                <p className="max-w-xl leading-relaxed text-[11px]">
-                  Semua titik reklame telah memiliki izin penyelenggaraan reklame daerah (IPR) yang sah dari dinas perizinan terkait di Jawa Barat. Pemasangan materi visual, pencahayaan malam, monitoring operasional dan laporan audit tayang digital dijamin 100%.
-                </p>
+                <span className="font-bold text-slate-200 block mb-0.5">Diterbitkan Oleh:</span>
+                <div>CV Bandung Media Outdoor</div>
+                <div>Divisi Strategi & Perencanaan Media Luar Ruang</div>
               </div>
-
-              <div className="text-center sm:text-right min-w-[200px]">
-                <div className="text-[11px] text-slate-500">Disusun oleh:</div>
-                <div className="font-bold text-white mt-1">Divisi Perencanaan Media Jabar OOH</div>
-                <div className="text-[10px] text-slate-500 font-mono mt-0.5">
-                  Tanggal: {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </div>
+              <div className="text-right font-mono text-[11px]">
+                Dokumen Resmi · Tanggal: {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* MODAL: SKEMA ERD & STRUKTUR TABEL DATABASE (SQL & JSON) */}
+      {showDbModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Database className="w-5 h-5 text-emerald-400" />
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Arsitektur Database ERD & DDL SQL (PostgreSQL & PostGIS)
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Struktur tabel relasional untuk CV Bandung Media Outdoor
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopySql}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-700"
+                >
+                  {copiedSql ? <CheckCheck className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-300" />}
+                  <span>{copiedSql ? 'Tersalin!' : 'Salin SQL'}</span>
+                </button>
+                <button
+                  onClick={() => setShowDbModal(false)}
+                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg text-xs"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-4 text-xs">
+              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                <h4 className="font-bold text-amber-300 uppercase tracking-wider text-xs">
+                  Entitas Relasi Utama (Entity Relationship Model):
+                </h4>
+                <ul className="list-disc list-inside space-y-1 text-slate-300">
+                  <li><strong>mobility_corridors</strong>: Jalur mobilitas (Komuter, Pariwisata, Komersial, Logistik) dengan PostGIS LineString.</li>
+                  <li><strong>billboard_spots</strong>: Titik reklame beserta orientasi, format, metrik VAC/OTS, tarif, dan relasi koridor.</li>
+                  <li><strong>points_of_interest (POI)</strong>: Simpul komersial, kampus, gerbang tol, pusat wisata dengan koordinat PostGIS Point.</li>
+                  <li><strong>spot_poi_distances</strong>: Relasi spasial jarak radius titik reklame ke POI terdekat.</li>
+                  <li><strong>campaign_plans & campaign_route_waypoints</strong>: Penyimpanan rencana penempatan, hasil optimasi Knapsack, dan urutan waypoint rute (1, 2, 3...).</li>
+                </ul>
+              </div>
+
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-mono text-slate-400 uppercase font-bold">
+                  Skema DDL PostgreSQL (Siap Dijalankan di Supabase / Cloud SQL / Local):
+                </span>
+                <pre className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-emerald-400 font-mono text-[11px] overflow-x-auto leading-relaxed select-all">
+                  {DATABASE_SCHEMA_SQL}
+                </pre>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-800 bg-slate-950 flex justify-end">
+              <button
+                onClick={() => setShowDbModal(false)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

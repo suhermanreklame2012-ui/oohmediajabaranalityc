@@ -57,6 +57,7 @@ import {
 } from 'lucide-react';
 import { WEST_JAVA_COMPETITOR_ZONES, CompetitorZone } from '../data/competitorData';
 import { ClusteredBillboardMarkers } from './ClusteredBillboardMarkers';
+import { calculateSpotKpiMetrics, SpotKpiMetrics } from '../utils/kpiMetrics';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyB_cErEKUXi76tGidnv0ke-zhMtgGYyq-A';
 
@@ -66,6 +67,78 @@ interface GoogleMapViewerProps {
   onSelectSpot: (spot: BillboardSpot | null) => void;
   onOpenDetailModal: (spot: BillboardSpot) => void;
   onSwitchToLeaflet?: () => void;
+}
+
+// Inner helper component to handle live Google Maps Visualization HeatmapLayer for KPI Intensity (Monthly ROI & Conversion)
+function GoogleKpiHeatmapController({
+  spots,
+  showHeatmap,
+  metric = 'composite'
+}: {
+  spots: BillboardSpot[];
+  showHeatmap: boolean;
+  metric?: 'composite' | 'roi' | 'conversion';
+}) {
+  const map = useMap();
+  const visualizationLib = useMapsLibrary('visualization') as any;
+  const heatmapLayerRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!map || !visualizationLib) return;
+
+    if (!showHeatmap || spots.length === 0) {
+      if (heatmapLayerRef.current) {
+        heatmapLayerRef.current.setMap(null);
+        heatmapLayerRef.current = null;
+      }
+      return;
+    }
+
+    const data = spots.map(spot => {
+      const kpi = calculateSpotKpiMetrics(spot);
+      let weight = kpi.kpiIntensityScore;
+      if (metric === 'roi') {
+        weight = Math.min(100, Math.max(10, (kpi.monthlyRoiMultiplier / 6.0) * 100));
+      } else if (metric === 'conversion') {
+        weight = Math.min(100, Math.max(10, (kpi.monthlyConversionRatePct / 8.5) * 100));
+      }
+
+      return {
+        location: new google.maps.LatLng(spot.coordinates.lat, spot.coordinates.lng),
+        weight: weight
+      };
+    });
+
+    if (!heatmapLayerRef.current) {
+      heatmapLayerRef.current = new (visualizationLib.HeatmapLayer as any)({
+        data,
+        map,
+        radius: 48,
+        opacity: 0.85,
+        gradient: [
+          'rgba(6, 182, 212, 0)',    // Transparent cyan
+          'rgba(6, 182, 212, 0.45)', // Cyan
+          'rgba(16, 185, 129, 0.75)',// Emerald Green
+          'rgba(245, 158, 11, 0.85)',// Amber Gold
+          'rgba(249, 115, 22, 0.92)',// Orange
+          'rgba(239, 68, 68, 0.98)', // Crimson Red
+          'rgba(225, 29, 72, 1)'     // Rose peak
+        ]
+      });
+    } else {
+      heatmapLayerRef.current.setData(data);
+      heatmapLayerRef.current.setMap(map);
+    }
+
+    return () => {
+      if (heatmapLayerRef.current) {
+        heatmapLayerRef.current.setMap(null);
+        heatmapLayerRef.current = null;
+      }
+    };
+  }, [map, visualizationLib, showHeatmap, spots, metric]);
+
+  return null;
 }
 
 // Inner helper component to handle live Google TrafficLayer
@@ -176,22 +249,17 @@ function ViewportBoundsTracker({
   onBoundsChange: (bounds: google.maps.LatLngBounds | null) => void;
 }) {
   const map = useMap();
-  const prevBoundsStrRef = useRef<string>('');
 
   useEffect(() => {
     if (!map) return;
 
     const handleIdle = () => {
       const bounds = map.getBounds();
-      if (!bounds) return;
-      const boundsStr = `${bounds.getSouthWest().toUrlValue(4)},${bounds.getNorthEast().toUrlValue(4)}`;
-      if (boundsStr !== prevBoundsStrRef.current) {
-        prevBoundsStrRef.current = boundsStr;
-        onBoundsChange(bounds);
-      }
+      onBoundsChange(bounds || null);
     };
 
     const listener = map.addListener('idle', handleIdle);
+    // Initial update
     handleIdle();
 
     return () => {
@@ -225,6 +293,8 @@ export function GoogleMapViewer({
   const [showTrafficLayer, setShowTrafficLayer] = useState<boolean>(true);
   const [isClusteringActive, setIsClusteringActive] = useState<boolean>(true);
   const [showCompetitorLayer, setShowCompetitorLayer] = useState<boolean>(false);
+  const [showKpiHeatmap, setShowKpiHeatmap] = useState<boolean>(false);
+  const [kpiHeatmapMetric, setKpiHeatmapMetric] = useState<'composite' | 'roi' | 'conversion'>('composite');
   const [selectedCompetitorZone, setSelectedCompetitorZone] = useState<CompetitorZone | null>(null);
   const [competitorSectorFilter, setCompetitorSectorFilter] = useState<string>('all');
   const [showQuickView, setShowQuickView] = useState<boolean>(true);
@@ -255,11 +325,6 @@ export function GoogleMapViewer({
       setIsQuickViewMinimized(false);
     }
   };
-
-  // Memoized bounds change handler for ViewportBoundsTracker
-  const handleBoundsChange = useCallback((bounds: google.maps.LatLngBounds | null) => {
-    setCurrentMapBounds(bounds);
-  }, []);
 
   // Geocoded Location Search State
   const [searchedLocation, setSearchedLocation] = useState<GeocodedLocation | null>(null);
@@ -313,6 +378,10 @@ export function GoogleMapViewer({
 
   const handleToggleTraffic = () => {
     setShowTrafficLayer(prev => !prev);
+  };
+
+  const handleToggleKpiHeatmap = () => {
+    setShowKpiHeatmap(prev => !prev);
   };
 
   // Spot count by regency map
@@ -479,7 +548,12 @@ export function GoogleMapViewer({
   };
 
   return (
-    <APIProvider apiKey={GOOGLE_MAPS_API_KEY} language="id" region="ID">
+    <APIProvider 
+      apiKey={GOOGLE_MAPS_API_KEY} 
+      language="id" 
+      region="ID"
+      libraries={['marker', 'visualization', 'places', 'geometry']}
+    >
       <div className={`relative w-full ${isFullscreen ? 'h-screen fixed inset-0 z-50' : 'h-[calc(100vh-4rem)]'} flex flex-col overflow-hidden bg-slate-950 font-sans`}>
         
         {/* Top Filter and Controls Bar */}
@@ -673,6 +747,25 @@ export function GoogleMapViewer({
                 </span>
               </button>
 
+              {/* KPI Heatmap Toggle */}
+              <button
+                onClick={handleToggleKpiHeatmap}
+                className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 border ${
+                  showKpiHeatmap
+                    ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow-lg shadow-amber-400/20 ring-2 ring-amber-400/40'
+                    : 'text-slate-400 hover:text-white border-transparent hover:bg-slate-800'
+                }`}
+                title="Aktifkan / Nonaktifkan Peta Intensitas KPI (Monthly ROI & Conversion Metrics)"
+              >
+                <Flame className={`w-3.5 h-3.5 ${showKpiHeatmap ? 'text-slate-950 fill-slate-950 animate-pulse' : 'text-amber-400'}`} />
+                <span>KPI Heatmap</span>
+                <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
+                  showKpiHeatmap ? 'bg-slate-950 text-amber-400 font-bold' : 'bg-slate-800 text-slate-500'
+                }`}>
+                  {showKpiHeatmap ? 'ON' : 'OFF'}
+                </span>
+              </button>
+
               {/* Layer Panel Popover Trigger */}
               <button
                 onClick={() => setShowLayerPanel(!showLayerPanel)}
@@ -741,6 +834,59 @@ export function GoogleMapViewer({
                   onClick={() => setShowCompetitorLayer(false)}
                   className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
                   title="Sembunyikan Layer Kompetitor"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Active KPI Heatmap Insight Ribbon */}
+          {showKpiHeatmap && (
+            <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-slate-950/95 backdrop-blur-md border border-amber-500/50 rounded-xl shadow-2xl text-xs text-slate-200 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="flex items-center gap-1.5 font-bold text-amber-400 shrink-0">
+                  <Flame className="w-4 h-4 text-amber-400 fill-amber-400" />
+                  Peta Intensitas KPI Reklame (Monthly ROI & Konversi):
+                </span>
+
+                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold">
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                  Tier 1: ROI &gt; 4.5x &amp; Konversi &gt; 6%
+                </span>
+
+                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  Tier 2: Tinggi
+                </span>
+
+                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  Tier 3: Moderat
+                </span>
+
+                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                  Tier 4: Standar
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[11px] text-slate-400 hidden sm:inline font-medium">Metrik Intensitas:</span>
+                <select
+                  value={kpiHeatmapMetric}
+                  onChange={(e) => setKpiHeatmapMetric(e.target.value as any)}
+                  className="px-2 py-0.5 text-[11px] bg-slate-900 border border-slate-700 text-amber-300 rounded-md focus:outline-none focus:border-amber-400 font-semibold cursor-pointer"
+                >
+                  <option value="composite">Komposit (50% ROI + 50% Konversi)</option>
+                  <option value="roi">Hanya Monthly ROI Multiplier</option>
+                  <option value="conversion">Hanya Tingkat Konversi (%)</option>
+                </select>
+
+                <button
+                  onClick={() => setShowKpiHeatmap(false)}
+                  className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
+                  title="Sembunyikan KPI Heatmap"
                 >
                   ✕
                 </button>
@@ -986,6 +1132,19 @@ export function GoogleMapViewer({
             title={`Quick View (Top 5 Impresi di Viewport): ${showQuickView ? 'Aktif' : 'Nonaktif'}`}
           >
             <Zap className={`w-4 h-4 ${showQuickView ? 'fill-amber-400 text-amber-400' : ''}`} />
+          </button>
+
+          {/* KPI Heatmap Toggle */}
+          <button
+            onClick={handleToggleKpiHeatmap}
+            className={`p-2 border rounded-lg shadow-xl transition-all flex items-center justify-center ${
+              showKpiHeatmap 
+                ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold ring-2 ring-amber-400/40 shadow-lg shadow-amber-400/20' 
+                : 'bg-slate-900/95 border-slate-800 text-slate-400 hover:text-white'
+            }`}
+            title={`KPI Heatmap (Monthly ROI & Conversion Intensity): ${showKpiHeatmap ? 'Aktif' : 'Nonaktif'}`}
+          >
+            <Flame className={`w-4 h-4 ${showKpiHeatmap ? 'fill-slate-950 text-slate-950 animate-pulse' : 'text-amber-400'}`} />
           </button>
 
           {/* Satellite View Toggle */}
@@ -1261,6 +1420,31 @@ export function GoogleMapViewer({
                 </div>
               </div>
 
+              {/* KPI Heatmap Layer Switch in Popover */}
+              <div 
+                onClick={handleToggleKpiHeatmap}
+                className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                  showKpiHeatmap
+                    ? 'bg-amber-500/15 border-amber-400/60 text-white font-bold shadow-sm shadow-amber-500/20'
+                    : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-amber-400 fill-amber-400" />
+                  <div>
+                    <span className="block text-xs">KPI Heatmap (Monthly ROI & Konversi)</span>
+                    <span className="text-[10px] text-slate-500 font-normal">Peta intensitas visual performa ROI & rasio konversi</span>
+                  </div>
+                </div>
+                <div className={`w-8 h-4 rounded-full transition-colors relative flex items-center px-0.5 ${
+                  showKpiHeatmap ? 'bg-amber-400' : 'bg-slate-800'
+                }`}>
+                  <div className={`w-3 h-3 rounded-full bg-slate-950 transition-transform ${
+                    showKpiHeatmap ? 'translate-x-4' : 'translate-x-0'
+                  }`} />
+                </div>
+              </div>
+
               {/* Hotspots Pin */}
               <div 
                 onClick={() => setShowHotspotPins(!showHotspotPins)}
@@ -1358,7 +1542,7 @@ export function GoogleMapViewer({
             />
 
             {/* Viewport Bounds Tracker for Quick View Mode */}
-            <ViewportBoundsTracker onBoundsChange={handleBoundsChange} />
+            <ViewportBoundsTracker onBoundsChange={setCurrentMapBounds} />
 
             {/* Geocoded Location Search Pin & Pulse Ring */}
             {searchedLocation && (
@@ -1459,6 +1643,31 @@ export function GoogleMapViewer({
               );
             })}
 
+            {/* KPI Heatmap: Google Maps Visualization HeatmapLayer (Smooth Gaussian Thermal Intensity) */}
+            <GoogleKpiHeatmapController
+              spots={filteredSpots}
+              showHeatmap={showKpiHeatmap}
+              metric={kpiHeatmapMetric}
+            />
+
+            {/* KPI Heatmap: Visual Intensity Halos over Billboard Markers */}
+            {showKpiHeatmap && filteredSpots.map(spot => {
+              const kpi = calculateSpotKpiMetrics(spot);
+              const radiusMeters = 180 + (kpi.kpiIntensityScore * 4.2);
+              return (
+                <Circle
+                  key={`kpi-halo-${spot.id}`}
+                  center={{ lat: spot.coordinates.lat, lng: spot.coordinates.lng }}
+                  radius={radiusMeters}
+                  strokeColor={kpi.colorHex}
+                  strokeOpacity={0.8}
+                  strokeWeight={2}
+                  fillColor={kpi.colorHex}
+                  fillOpacity={0.22}
+                />
+              );
+            })}
+
             {/* Clustered or Direct Billboard Advanced Markers */}
             <ClusteredBillboardMarkers
               spots={filteredSpots}
@@ -1469,6 +1678,7 @@ export function GoogleMapViewer({
               }}
               setInfoWindowSpot={setInfoWindowSpot}
               showCompetitorLayer={showCompetitorLayer}
+              showKpiHeatmap={showKpiHeatmap}
               clusteringEnabled={isClusteringActive}
             />
 
@@ -1528,6 +1738,33 @@ export function GoogleMapViewer({
                       <span className="font-bold text-emerald-600">{infoWindowSpot.vacDaily.toLocaleString('id-ID')}</span>
                     </div>
                   </div>
+
+                  {/* KPI Heatmap Metrics Highlight */}
+                  {showKpiHeatmap && (
+                    <div className="bg-amber-50 border border-amber-300 p-2 rounded-lg text-[10px] font-mono mb-2 space-y-1">
+                      <div className="flex items-center justify-between text-amber-900 font-bold border-b border-amber-200 pb-1">
+                        <span>🔥 METRIK KPI BULANAN:</span>
+                        <span className="px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 font-black">
+                          {calculateSpotKpiMetrics(infoWindowSpot).intensityTier}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1 pt-0.5">
+                        <div>
+                          <span className="text-amber-800 block text-[9px]">MONTHLY ROI:</span>
+                          <strong className="text-amber-950 text-xs font-black">
+                            {calculateSpotKpiMetrics(infoWindowSpot).monthlyRoiMultiplier}x
+                          </strong>
+                        </div>
+                        <div>
+                          <span className="text-amber-800 block text-[9px]">KONVERSI:</span>
+                          <strong className="text-emerald-700 text-xs font-black">
+                            {calculateSpotKpiMetrics(infoWindowSpot).monthlyConversionRatePct}%
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <button
                     onClick={() => onOpenDetailModal(infoWindowSpot)}
                     className="w-full py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded transition-colors text-center"

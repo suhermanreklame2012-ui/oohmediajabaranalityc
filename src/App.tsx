@@ -13,30 +13,26 @@ import { RealTimeStats } from './components/RealTimeStats';
 import { TrafficInsights } from './components/TrafficInsights';
 import { PredictiveAnalytics } from './components/PredictiveAnalytics';
 import { EffectivenessAnalysis } from './components/EffectivenessAnalysis';
+import { DemographicAnalysis } from './components/DemographicAnalysis';
 import { DatabaseTable } from './components/DatabaseTable';
 import { CampaignPlanner } from './components/CampaignPlanner';
+import { OmnichannelMediaStrategyPlanner } from './components/OmnichannelMediaStrategyPlanner';
+import { AiOmnichannelPipeline } from './components/AiOmnichannelPipeline';
 import { ReportGenerator } from './components/ReportGenerator';
 import { SpotDetailModal } from './components/SpotDetailModal';
 import { AddSpotModal } from './components/AddSpotModal';
 import { ExportModal } from './components/ExportModal';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Database, Download, Server } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<NavTabType>('map');
   const [mapEngine, setMapEngine] = useState<'google' | 'leaflet'>('google');
   
-  // Persistent spots state
-  const [spots, setSpots] = useState<BillboardSpot[]>(() => {
-    const saved = localStorage.getItem('jabar_ooh_spots_v1');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return INITIAL_BILLBOARD_SPOTS;
-      }
-    }
-    return INITIAL_BILLBOARD_SPOTS;
-  });
+  // Spots state loaded from server-side SQLite (ZERO LocalStorage / ZERO IndexedDB)
+  const [spots, setSpots] = useState<BillboardSpot[]>(INITIAL_BILLBOARD_SPOTS);
+  const [dbStatus, setDbStatus] = useState<'loading' | 'connected' | 'fallback'>('loading');
+  const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
   const [selectedSpot, setSelectedSpot] = useState<BillboardSpot | null>(null);
   const [detailModalSpot, setDetailModalSpot] = useState<BillboardSpot | null>(null);
@@ -44,20 +40,105 @@ export default function App() {
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Sync to localStorage
+  // Polling Service: Ambil data segar dari /api/spots saat mount dan secara otomatis setiap 60 detik
   useEffect(() => {
-    localStorage.setItem('jabar_ooh_spots_v1', JSON.stringify(spots));
-  }, [spots]);
+    // Bersihkan sisa-sisa localStorage lama agar tidak terpakai lagi
+    try {
+      localStorage.removeItem('jabar_ooh_spots_v1');
+    } catch (e) {
+      // ignore
+    }
+
+    let isSubscribed = true;
+    let isFetching = false;
+
+    async function fetchSpotsFromDb(isBackgroundPolling = false) {
+      if (isFetching) return;
+      isFetching = true;
+      if (isBackgroundPolling) {
+        setIsSyncing(true);
+      }
+
+      try {
+        const res = await fetch('/api/spots', {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0 && isSubscribed) {
+            setSpots(json.data);
+            setDbStatus('connected');
+            setLastSyncTime(new Date());
+
+            // Pastikan data spot yang sedang aktif/diinspeksi tetap tersinkronisasi
+            setSelectedSpot(prevSelected => {
+              if (!prevSelected) return null;
+              return json.data.find((s: BillboardSpot) => s.id === prevSelected.id) || prevSelected;
+            });
+
+            setDetailModalSpot(prevModal => {
+              if (!prevModal) return null;
+              return json.data.find((s: BillboardSpot) => s.id === prevModal.id) || prevModal;
+            });
+            return;
+          }
+        }
+        if (isSubscribed) setDbStatus(prev => (prev === 'connected' ? 'connected' : 'fallback'));
+      } catch (err) {
+        if (!isBackgroundPolling) {
+          console.warn('Backend SQLite connection fallback:', err);
+        }
+        if (isSubscribed) setDbStatus(prev => (prev === 'connected' ? 'connected' : 'fallback'));
+      } finally {
+        isFetching = false;
+        if (isSubscribed) {
+          setIsSyncing(false);
+        }
+      }
+    }
+
+    // 1. Ambil data pertama kali saat mount
+    fetchSpotsFromDb(false);
+
+    // 2. Polling service setiap 60 detik (60.000 ms) agar sinkron dengan perubahan lapangan secara real-time
+    const POLLING_INTERVAL_MS = 60000;
+    const intervalId = setInterval(() => {
+      fetchSpotsFromDb(true);
+    }, POLLING_INTERVAL_MS);
+
+    return () => {
+      isSubscribed = false;
+      clearInterval(intervalId);
+    };
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const handleAddSpot = (newSpot: BillboardSpot) => {
+  // Simpan data baru langsung ke server database SQLite
+  const handleAddSpot = async (newSpot: BillboardSpot) => {
     setSpots(prev => [newSpot, ...prev]);
     setSelectedSpot(newSpot);
-    showToast(`Titik reklame baru "${newSpot.name}" berhasil ditambahkan ke basis data Jawa Barat.`);
+
+    try {
+      const res = await fetch('/api/spots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSpot)
+      });
+      if (res.ok) {
+        showToast(`Titik reklame baru "${newSpot.name}" berhasil disimpan ke server SQLite.`);
+      } else {
+        showToast(`Titik ditambahkan secara lokal (koneksi server: respon ${res.status}).`);
+      }
+    } catch (err) {
+      showToast(`Titik ditambahkan ke memori aktif aplikasi.`);
+    }
   };
 
   const handleOpenMapWithSpot = (spot: BillboardSpot) => {
@@ -82,6 +163,8 @@ export default function App() {
         onOpenAddModal={() => setIsAddModalOpen(true)}
         onOpenExportModal={() => setIsExportModalOpen(true)}
         totalSpotsCount={spots.length}
+        isSyncing={isSyncing}
+        lastSyncTime={lastSyncTime}
       />
 
       {/* Main Content Area */}
@@ -137,6 +220,15 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'demographic' && (
+          <DemographicAnalysis
+            spots={spots}
+            initialSpotId={selectedSpot?.id}
+            onOpenDetailModal={setDetailModalSpot}
+            onNavigateToMap={handleOpenMapWithSpot}
+          />
+        )}
+
         {activeTab === 'database' && (
           <DatabaseTable
             spots={spots}
@@ -155,6 +247,26 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'omnichannel-planner' && (
+          <OmnichannelMediaStrategyPlanner
+            spots={spots}
+            onOpenDetailModal={setDetailModalSpot}
+            onNavigateToMap={() => setActiveTab('map')}
+          />
+        )}
+
+        {activeTab === 'ai-pipeline' && (
+          <AiOmnichannelPipeline
+            onOpenMapTab={(coords) => {
+              const matched = spots.find(s => 
+                Math.abs(s.coordinates.lat - coords.lat) < 0.05 && 
+                Math.abs(s.coordinates.lng - coords.lng) < 0.05
+              ) || spots[0];
+              handleOpenMapWithSpot(matched);
+            }}
+          />
+        )}
+
         {activeTab === 'reports' && (
           <ReportGenerator
             spots={spots}
@@ -163,17 +275,38 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer (Subtle, unobtrusive - hidden in full map view) */}
+      {/* Footer (Subtle, unobtrusive - shows server-side SQLite & MySQL status) */}
       {activeTab !== 'map' && (
-        <footer className="border-t border-slate-900 bg-slate-950 px-4 py-4 text-xs text-slate-500 print:hidden">
+        <footer className="border-t border-slate-900 bg-slate-950 px-4 py-3 text-xs text-slate-500 print:hidden">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div>
-              <span>Platform Pengukuran & Intelijen Media Iklan Luar Ruang Jawa Barat</span>
-              <span className="mx-2">·</span>
-              <span>Koordinat Standar WGS84 (EPSG:4326)</span>
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5 font-mono text-[11px] text-emerald-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Database: SQLite 3 Persistent (Server-Side)
+              </span>
+              <span>·</span>
+              <span className="text-[11px] text-slate-400">Zero LocalStorage / No IndexedDB</span>
             </div>
-            <div>
-              <span>Sistem Pemantauan OOH/DOOH Terintegrasi</span>
+            <div className="flex items-center gap-3 text-[11px]">
+              <a
+                href="/api/database/export/mysql"
+                download="database_bandung_media_outdoor_mysql.sql"
+                className="text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 transition-colors"
+                title="Download MySQL Dump untuk cPanel / phpMyAdmin"
+              >
+                <Download className="w-3 h-3" />
+                <span>Unduh MySQL Dump (.sql)</span>
+              </a>
+              <span>·</span>
+              <a
+                href="/api/database/export/sqlite"
+                download="database_bandung_media_outdoor_sqlite.sql"
+                className="text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 transition-colors"
+                title="Download SQLite 3 Database Dump"
+              >
+                <Database className="w-3 h-3" />
+                <span>Unduh SQLite (.sql)</span>
+              </a>
             </div>
           </div>
         </footer>
@@ -184,6 +317,10 @@ export default function App() {
         spot={detailModalSpot}
         onClose={() => setDetailModalSpot(null)}
         onViewOnMap={handleOpenMapWithSpot}
+        onOpenDemographics={(spot) => {
+          setSelectedSpot(spot);
+          setActiveTab('demographic');
+        }}
       />
 
       <AddSpotModal

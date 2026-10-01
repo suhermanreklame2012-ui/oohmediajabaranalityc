@@ -14,7 +14,8 @@ import {
   DollarSign,
   Maximize2,
   Sparkles,
-  Building2
+  Building2,
+  BrainCircuit
 } from 'lucide-react';
 import { getSpotPois } from '../data/poiData';
 
@@ -22,9 +23,10 @@ interface SpotDetailModalProps {
   spot: BillboardSpot | null;
   onClose: () => void;
   onViewOnMap: (spot: BillboardSpot) => void;
+  onOpenDemographics?: (spot: BillboardSpot) => void;
 }
 
-export function SpotDetailModal({ spot, onClose, onViewOnMap }: SpotDetailModalProps) {
+export function SpotDetailModal({ spot, onClose, onViewOnMap, onOpenDemographics }: SpotDetailModalProps) {
   const [copied, setCopied] = useState<boolean>(false);
 
   if (!spot) return null;
@@ -325,13 +327,40 @@ export function SpotDetailModal({ spot, onClose, onViewOnMap }: SpotDetailModalP
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-end p-4 border-t border-slate-800 bg-slate-950/80">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs rounded-lg transition-colors"
-          >
-            Tutup
-          </button>
+        <div className="flex items-center justify-between p-4 border-t border-slate-800 bg-slate-950/80">
+          {onOpenDemographics ? (
+            <button
+              onClick={() => {
+                onClose();
+                onOpenDemographics(spot);
+              }}
+              className="px-3.5 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/50 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
+              title="Buka Analisis Profil Demografi & Minat Audiens dengan AI Gemini"
+            >
+              <BrainCircuit className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Analisis Demografi AI</span>
+            </button>
+          ) : <div />}
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                onClose();
+                onViewOnMap(spot);
+              }}
+              className="px-3.5 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/50 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5"
+            >
+              <MapPin className="w-3.5 h-3.5 text-amber-400" />
+              <span>Lihat di Peta</span>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs rounded-xl transition-colors"
+            >
+              Tutup
+            </button>
+          </div>
         </div>
       </div>
     </div>

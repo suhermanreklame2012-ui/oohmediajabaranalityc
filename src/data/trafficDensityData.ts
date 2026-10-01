@@ -764,3 +764,18 @@ export function findNearbySpotsForHotspot(
     .filter(item => item.distanceKm <= maxRadiusKm)
     .sort((a, b) => a.distanceKm - b.distanceKm);
 }
+
+// Find nearby traffic hotspots/sensors within radius km of a billboard spot
+export function findNearbyHotspotsForSpot(
+  spot: BillboardSpot,
+  hotspots: TrafficHeatPoint[] = WEST_JAVA_TRAFFIC_HOTSPOTS,
+  maxRadiusKm: number = 6.0
+): { hotspot: TrafficHeatPoint; distanceKm: number }[] {
+  return hotspots
+    .map(hotspot => ({
+      hotspot,
+      distanceKm: parseFloat(calculateHaversineKm(spot.coordinates.lat, spot.coordinates.lng, hotspot.lat, hotspot.lng).toFixed(2))
+    }))
+    .filter(item => item.distanceKm <= maxRadiusKm)
+    .sort((a, b) => a.distanceKm - b.distanceKm);
+}

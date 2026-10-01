@@ -135,3 +135,32 @@ export interface ReportConfig {
   notes: string;
 }
 
+export type MobilityCorridorType = 
+  | 'Jalur Komuter (Daily Commuters)'
+  | 'Jalur Pariwisata (Leisure & Tourism)'
+  | 'Jalur Komersial & Retail (Premium Areas)'
+  | 'Jalur Logistik & Industri';
+
+export interface RouteLegDetail {
+  legIndex: number;
+  fromSpot: BillboardSpot;
+  toSpot: BillboardSpot;
+  distanceKm: number;
+  estimatedMinutes: number;
+  bearingDegrees: number;
+  headingText: string;
+  roadSegmentName: string;
+}
+
+export interface OptimizedTravelRoute {
+  orderedSpots: BillboardSpot[];
+  legs: RouteLegDetail[];
+  totalDistanceKm: number;
+  totalTravelMinutes: number;
+  pathCoordinates: [number, number][];
+  corridorName?: string;
+  isDominationJourney: boolean;
+  repetitionMultiplier: number;
+  avgSpeedKmh: number;
+}
+

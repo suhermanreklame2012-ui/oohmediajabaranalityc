@@ -83,7 +83,7 @@ export function MapViewer({
   const [showHotspotPins, setShowHotspotPins] = useState<boolean>(true);
   const [heatTimeMode, setHeatTimeMode] = useState<HeatTimeMode>('rush_evening');
   const [heatIntensityMultiplier, setHeatIntensityMultiplier] = useState<number>(1.0);
-  const [tileServer, setTileServer] = useState<TileServerType>('carto_voyager');
+  const [tileServer, setTileServer] = useState<TileServerType>('esri_street');
   
   // UI Panels
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -157,46 +157,46 @@ export function MapViewer({
     switch (type) {
       case 'carto_dark':
         return {
-          url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-          attribution: '&copy; <a href="https://carto.com/">CartoDB</a> &copy; OpenStreetMap (Mode Gelap Bebas API Key)',
+          url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+          attribution: '&copy; Esri World Dark Gray (Mode Gelap Bebas Watermark & Tanpa Blokir)',
           subdomains: 'abcd',
-          maxZoom: 20
+          maxZoom: 16
         };
       case 'carto_positron':
         return {
-          url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-          attribution: '&copy; CartoDB Positron &copy; OpenStreetMap (Bebas API Key)',
-          subdomains: 'abcd',
-          maxZoom: 20
+          url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          attribution: '&copy; OpenStreetMap Kontributor (100% Terbuka & Bebas Watermark)',
+          subdomains: 'abc',
+          maxZoom: 19
         };
       case 'esri_street':
         return {
           url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-          attribution: '&copy; Esri World Street Map (Bebas API Key & Tanpa Blokir)',
+          attribution: '&copy; Esri World Street Map (Bebas API Key & Bebas Watermark)',
           subdomains: 'abcd',
           maxZoom: 19
         };
       case 'esri_satellite':
         return {
           url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-          attribution: '&copy; Esri World Imagery Citra Satelit (Bebas API Key)',
+          attribution: '&copy; Esri World Imagery Citra Satelit (Bebas Watermark)',
           subdomains: 'abcd',
           maxZoom: 18
         };
       case 'osm':
         return {
           url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          attribution: '&copy; OpenStreetMap Kontributor (100% Terbuka)',
+          attribution: '&copy; OpenStreetMap Kontributor (100% Terbuka & Bebas Watermark)',
           subdomains: 'abc',
           maxZoom: 19
         };
       case 'carto_voyager':
       default:
         return {
-          url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-          attribution: '&copy; <a href="https://carto.com/">CartoDB</a> Voyager &copy; OpenStreetMap (Peta Jalan Jabar 100% Bebas API Key)',
+          url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+          attribution: '&copy; Esri World Street Map (Peta Jalan Jabar 100% Bebas Watermark)',
           subdomains: 'abcd',
-          maxZoom: 20
+          maxZoom: 19
         };
     }
   };
@@ -1236,11 +1236,11 @@ export function MapViewer({
             className="w-full p-2 bg-slate-900/95 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-lg shadow-xl transition-colors text-[10px] font-mono cursor-pointer focus:outline-none focus:border-amber-400"
             title="Pilihan Provider Peta (Semua 100% Bebas API Key & Tanpa Blokir)"
           >
-            <option value="carto_voyager">🗺️ Peta Jalan Jabar (Carto Voyager)</option>
-            <option value="carto_dark">🌌 Dark Modern Canvas (Carto Dark)</option>
+            <option value="carto_voyager">🗺️ Peta Jalan Jabar (Esri Street Map - Bebas Watermark)</option>
+            <option value="carto_dark">🌌 Dark Modern Canvas (Esri Dark Canvas)</option>
             <option value="esri_street">🛣️ Esri Street Navigation</option>
             <option value="esri_satellite">🛰️ Citra Satelit Resolusi Tinggi</option>
-            <option value="carto_positron">⚪ Light Positron Canvas</option>
+            <option value="carto_positron">⚪ OpenStreetMap Light Canvas</option>
             <option value="osm">🌐 OpenStreetMap Alternatif</option>
           </select>
         </div>

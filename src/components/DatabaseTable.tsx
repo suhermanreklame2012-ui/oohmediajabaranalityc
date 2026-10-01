@@ -135,20 +135,32 @@ export function DatabaseTable({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <a
+              href="/api/database/export/mysql"
+              download="database_bandung_media_outdoor_mysql.sql"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg transition-colors shadow-md"
+              title="Unduh file dump SQL untuk MySQL / MariaDB / cPanel"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Unduh MySQL (.sql)</span>
+            </a>
+
+            <a
+              href="/api/database/export/sqlite"
+              download="database_bandung_media_outdoor_sqlite.sql"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-cyan-300 bg-cyan-950/60 border border-cyan-500/50 hover:bg-cyan-900/60 rounded-lg transition-colors"
+              title="Unduh file dump SQL untuk SQLite"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Unduh SQLite (.sql)</span>
+            </a>
+
             <button
               onClick={handleCopyGeoJson}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-950 border border-slate-800 rounded-lg hover:bg-slate-800 transition-colors"
             >
               {copiedGeoJson ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedGeoJson ? 'Tersalin!' : 'Salin GeoJSON'}</span>
-            </button>
-
-            <button
-              onClick={handleDownloadGeoJson}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-950 border border-slate-800 rounded-lg hover:bg-slate-800 transition-colors"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Unduh .GeoJSON</span>
             </button>
 
             <button
@@ -161,7 +173,7 @@ export function DatabaseTable({
 
             <button
               onClick={onOpenAddModal}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-slate-950 bg-slate-100 hover:bg-white rounded-lg transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Tambah Titik</span>

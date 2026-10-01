@@ -88,6 +88,15 @@ export interface BillboardSpot {
   facingDirection: string;        // Arah hadap
   targetDemographics: string;
   featuredImageUrl?: string;
+
+  // Maintenance & Permit Tracking
+  permitNumber?: string;
+  permitExpiryDate?: string; // YYYY-MM-DD
+  permitStatus?: 'Active' | 'Expiring Soon' | 'Expired';
+  maintenanceStatus?: 'Good' | 'Needs Inspection' | 'Repair Required' | 'Under Repair';
+  lastInspectionDate?: string;
+  physicalIssues?: string[];
+  structuralIntegrityScore?: number; // 0 - 100
 }
 
 export interface WestJavaRegencyMeta {

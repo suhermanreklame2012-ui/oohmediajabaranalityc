@@ -406,7 +406,12 @@ export function CampaignRouteMap({
       <div className="relative w-full h-[520px] rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl">
         {/* Render Engine 1: Google Maps (Default dengan Polyline Native) */}
         {engine === 'google' && (
-          <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+          <APIProvider 
+            apiKey={GOOGLE_MAPS_API_KEY}
+            language="id" 
+            region="ID"
+            libraries={['marker', 'visualization', 'places', 'geometry']}
+          >
             <Map
               defaultCenter={{
                 lat: route.orderedSpots[0]?.coordinates.lat || -6.9175,

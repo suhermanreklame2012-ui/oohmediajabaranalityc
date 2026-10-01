@@ -8,7 +8,8 @@ import {
   Sliders, 
   CheckCircle2, 
   Info,
-  ArrowRight
+  ArrowRight,
+  MapPin
 } from 'lucide-react';
 
 interface EffectivenessAnalysisProps {
@@ -58,6 +59,14 @@ export function EffectivenessAnalysis({
           </div>
 
           <div className="flex items-center gap-3 self-start md:self-auto">
+            <button
+              onClick={() => onSelectSpot(spots[0])}
+              className="px-3.5 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg flex items-center gap-1.5 transition-all"
+              title="Buka Peta Interaktif Google Maps untuk melihat semua titik reklame"
+            >
+              <MapPin className="w-4 h-4 text-slate-950" />
+              <span>Tampilkan Google Map</span>
+            </button>
             <div className="text-right">
               <span className="text-[11px] text-slate-400 block">Indeks Efektivitas Jabar</span>
               <span className="text-lg font-mono font-bold text-cyan-400">
@@ -164,6 +173,14 @@ export function EffectivenessAnalysis({
               }`}
             >
               Billboard Statis
+            </button>
+            <button
+              onClick={() => onSelectSpot(spots[0])}
+              className="px-2.5 py-1 text-xs font-semibold rounded bg-amber-400/10 text-amber-300 hover:text-white hover:bg-amber-400/20 border border-amber-400/30 transition-all flex items-center gap-1 ml-1"
+              title="Tampilkan semua titik di Google Map"
+            >
+              <MapPin className="w-3.5 h-3.5 text-amber-400" />
+              <span>Lihat di Peta</span>
             </button>
           </div>
         </div>

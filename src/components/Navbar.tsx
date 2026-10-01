@@ -1,6 +1,6 @@
-import { MapPin, Activity, Sparkles, BarChart3, Database, Calculator, FileText, Plus, TrendingUp, Cpu, Layers, Users } from 'lucide-react';
+import { MapPin, Activity, Sparkles, BarChart3, Database, Calculator, FileText, Plus, TrendingUp, Cpu, Layers, Users, Truck } from 'lucide-react';
 
-export type NavTabType = 'map' | 'realtime' | 'traffic-insights' | 'predictive' | 'effectiveness' | 'demographic' | 'database' | 'planner' | 'omnichannel-planner' | 'ai-pipeline' | 'reports';
+export type NavTabType = 'map' | 'realtime' | 'traffic-insights' | 'predictive' | 'effectiveness' | 'demographic' | 'database' | 'planner' | 'omnichannel-planner' | 'ai-pipeline' | 'logistic-optimizer' | 'reports';
 
 interface NavbarProps {
   activeTab: NavTabType;
@@ -163,6 +163,19 @@ export function Navbar({
           </button>
 
           <button
+            onClick={() => setActiveTab('logistic-optimizer')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap border ${
+              activeTab === 'logistic-optimizer'
+                ? 'bg-amber-400 text-slate-950 font-bold border-amber-300 shadow-md ring-2 ring-amber-400/30'
+                : 'bg-slate-900/80 text-amber-300 hover:text-amber-200 border-amber-400/40 hover:bg-slate-900'
+            }`}
+            title="Optimasi Rute Logistik Pemeliharaan & Inspeksi Fisik Reklame dari Base Bandung"
+          >
+            <Truck className="w-3.5 h-3.5 text-amber-400" />
+            <span>Logistik & Pemeliharaan</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('ai-pipeline')}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
               activeTab === 'ai-pipeline'
@@ -273,6 +286,14 @@ export function Navbar({
           }`}
         >
           Strategi (ATL·BTL·DTL)
+        </button>
+        <button
+          onClick={() => setActiveTab('logistic-optimizer')}
+          className={`px-2.5 py-1 text-xs whitespace-nowrap rounded font-bold ${
+            activeTab === 'logistic-optimizer' ? 'bg-amber-400 text-slate-950 font-black' : 'text-amber-300 border border-amber-400/40'
+          }`}
+        >
+          Logistik & Pemeliharaan
         </button>
         <button
           onClick={() => setActiveTab('reports')}

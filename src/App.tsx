@@ -18,6 +18,7 @@ import { DatabaseTable } from './components/DatabaseTable';
 import { CampaignPlanner } from './components/CampaignPlanner';
 import { OmnichannelMediaStrategyPlanner } from './components/OmnichannelMediaStrategyPlanner';
 import { AiOmnichannelPipeline } from './components/AiOmnichannelPipeline';
+import { LogisticOptimizer } from './components/LogisticOptimizer';
 import { ReportGenerator } from './components/ReportGenerator';
 import { SpotDetailModal } from './components/SpotDetailModal';
 import { AddSpotModal } from './components/AddSpotModal';
@@ -194,6 +195,7 @@ export default function App() {
             spots={spots}
             onSelectSpot={handleOpenMapWithSpot}
             onOpenDetailModal={setDetailModalSpot}
+            onNavigateToLogisticOptimizer={() => setActiveTab('logistic-optimizer')}
           />
         )}
 
@@ -264,6 +266,14 @@ export default function App() {
               ) || spots[0];
               handleOpenMapWithSpot(matched);
             }}
+          />
+        )}
+
+        {activeTab === 'logistic-optimizer' && (
+          <LogisticOptimizer
+            spots={spots}
+            onOpenDetailModal={setDetailModalSpot}
+            onNavigateToInteractiveMap={handleOpenMapWithSpot}
           />
         )}
 

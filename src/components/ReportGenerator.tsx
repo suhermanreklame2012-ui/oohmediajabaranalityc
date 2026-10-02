@@ -337,15 +337,23 @@ export function ReportGenerator({ spots, onOpenDetailModal }: ReportGeneratorPro
         </div>
 
         {/* Signatures & Corporate Approval Block */}
-        <div className="pt-6 border-t border-slate-800 print:border-gray-300 grid grid-cols-2 gap-8 text-xs font-sans">
+        <div className="pt-6 border-t border-slate-800 print:border-gray-300 grid grid-cols-1 md:grid-cols-3 gap-6 text-xs font-sans">
           <div>
-            <span className="text-slate-400 print:text-gray-600 block mb-12">Disiapkan Oleh (Tim Analitik OOH):</span>
+            <span className="text-slate-400 print:text-gray-600 block mb-10">Disiapkan Oleh (Tim Analitik OOH):</span>
             <div className="font-bold text-slate-200 print:text-black">Lead OOH Data Scientist</div>
             <div className="text-[11px] text-slate-500 print:text-gray-500">JabarOOH Analytics & Measurement Division</div>
           </div>
 
+          <div className="text-center p-3 bg-teal-950/40 border border-teal-500/30 rounded-xl print:bg-white print:border-gray-300">
+            <span className="text-[10px] text-teal-400 font-bold uppercase tracking-wider block mb-1">Status Hak Akses & Otorisasi:</span>
+            <div className="font-black text-sm text-teal-300 print:text-teal-800">DISETUJUI & DIOTORISASI PENUH</div>
+            <div className="font-semibold text-white print:text-black mt-1">Suherman Reklame</div>
+            <div className="font-mono text-[10px] text-teal-200 print:text-gray-600">suherman.reklame2012@gmail.com</div>
+            <div className="text-[9px] text-slate-400 print:text-gray-400 mt-1">Super Administrator & Pengelola OOH Jabar</div>
+          </div>
+
           <div className="text-right">
-            <span className="text-slate-400 print:text-gray-600 block mb-12">Disetujui Oleh (Klien / Brand Executive):</span>
+            <span className="text-slate-400 print:text-gray-600 block mb-10">Diterima Oleh (Klien / Brand Executive):</span>
             <div className="font-bold text-slate-200 print:text-black">{reportData.meta.brandClient}</div>
             <div className="text-[11px] text-slate-500 print:text-gray-500">Media Planning & Procurement Lead</div>
           </div>

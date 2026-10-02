@@ -31,29 +31,42 @@ console.error = (...args: any[]) => {
 };
 
 // Global protection against WebSocket connection drops and map library reload popups
-window.addEventListener('error', (event) => {
-  const msg = event?.message || '';
-  if (
-    msg.includes('WebSocket') ||
-    msg.includes('maps.googleapis') ||
-    msg.includes('already been loaded')
-  ) {
-    event.preventDefault();
-    event.stopPropagation();
-    return true;
-  }
-});
+window.addEventListener(
+  'error',
+  (event) => {
+    const msg = event?.message || '';
+    if (
+      msg.includes('WebSocket') ||
+      msg.includes('closed without opened') ||
+      msg.includes('maps.googleapis') ||
+      msg.includes('already been loaded')
+    ) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return true;
+    }
+  },
+  true
+);
 
-window.addEventListener('unhandledrejection', (event) => {
-  const reason = event.reason?.message || String(event.reason || '');
-  if (
-    reason.includes('WebSocket') ||
-    reason.includes('maps.googleapis') ||
-    reason.includes('already been loaded')
-  ) {
-    event.preventDefault();
-  }
-});
+window.addEventListener(
+  'unhandledrejection',
+  (event) => {
+    const reason = event.reason?.message || String(event.reason || '');
+    if (
+      reason.includes('WebSocket') ||
+      reason.includes('closed without opened') ||
+      reason.includes('maps.googleapis') ||
+      reason.includes('already been loaded') ||
+      reason.includes('vite')
+    ) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return true;
+    }
+  },
+  true
+);
 
 createRoot(document.getElementById('root')!).render(<App />);
 

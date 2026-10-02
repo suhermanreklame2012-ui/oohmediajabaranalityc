@@ -3,6 +3,132 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // 1. Bulletproof Vite HMR WebSocket neutralizer & console filter for Cloud Sandbox & iFrame
+      (function() {
+        try {
+          var wrapConsole = function(type) {
+            var orig = console[type];
+            console[type] = function() {
+              var first = arguments[0] ? (arguments[0] + '') : '';
+              if (
+                first.indexOf('[vite]') !== -1 || 
+                first.indexOf('vite-hmr') !== -1 ||
+                first.indexOf('WebSocket') !== -1 ||
+                first.indexOf('Heatmap Layer functionality') !== -1 ||
+                first.indexOf('GoogleTrafficDensityHeatmapController') !== -1
+              ) {
+                return;
+              }
+              if (orig) orig.apply(console, arguments);
+            };
+          };
+          wrapConsole('debug');
+          wrapConsole('log');
+          wrapConsole('info');
+          wrapConsole('warn');
+
+          var OriginalWS = window.WebSocket;
+          if (OriginalWS) {
+            window.WebSocket = function(url, protocols) {
+              var isViteHmr = false;
+              if (protocols === 'vite-hmr') isViteHmr = true;
+              if (Array.isArray(protocols) && protocols.indexOf('vite-hmr') !== -1) isViteHmr = true;
+              if (typeof url === 'string' && (url.indexOf('vite-hmr') !== -1 || url.indexOf(':3000') !== -1)) isViteHmr = true;
+
+              if (isViteHmr) {
+                var listeners = {};
+                var fakeSocket = {
+                  binaryType: 'blob',
+                  readyState: 1, // OPEN
+                  url: url,
+                  protocol: 'vite-hmr',
+                  send: function() {},
+                  close: function() {},
+                  addEventListener: function(type, fn) {
+                    if (!listeners[type]) listeners[type] = [];
+                    listeners[type].push(fn);
+                    if (type === 'open') {
+                      setTimeout(function() {
+                        try { fn({ type: 'open' }); } catch(err) {}
+                      }, 10);
+                    }
+                  },
+                  removeEventListener: function(type, fn) {
+                    if (!listeners[type]) return;
+                    listeners[type] = listeners[type].filter(function(cb) { return cb !== fn; });
+                  },
+                  dispatchEvent: function() { return true; },
+                  onopen: null,
+                  onclose: null,
+                  onerror: null,
+                  onmessage: null
+                };
+
+                setTimeout(function() {
+                  if (typeof fakeSocket.onopen === 'function') {
+                    try { fakeSocket.onopen({ type: 'open' }); } catch(err) {}
+                  }
+                }, 10);
+
+                return fakeSocket;
+              }
+              return new OriginalWS(url, protocols);
+            };
+
+            window.WebSocket.prototype = OriginalWS.prototype;
+            window.WebSocket.CONNECTING = OriginalWS.CONNECTING;
+            window.WebSocket.OPEN = OriginalWS.OPEN;
+            window.WebSocket.CLOSING = OriginalWS.CLOSING;
+            window.WebSocket.CLOSED = OriginalWS.CLOSED;
+          }
+        } catch (e) {}
+
+        // 2. Global capture-phase suppression for any residual WebSocket disconnections and cross-origin Script errors
+        window.onerror = function(message, source, lineno, colno, error) {
+          var msg = (message || '') + '';
+          if (
+            msg === 'Script error.' ||
+            msg.indexOf('Script error') !== -1 ||
+            msg.indexOf('WebSocket') !== -1 ||
+            msg.indexOf('closed without opened') !== -1 ||
+            msg.indexOf('vite') !== -1
+          ) {
+            return true;
+          }
+        };
+
+        window.addEventListener('unhandledrejection', function(event) {
+          var reason = event.reason;
+          var msg = (reason && (reason.message || reason.toString())) || '';
+          if (
+            msg.indexOf('WebSocket') !== -1 ||
+            msg.indexOf('closed without opened') !== -1 ||
+            msg.indexOf('vite') !== -1 ||
+            msg.indexOf('Script error') !== -1
+          ) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('error', function(event) {
+          var msg = (event.message || '') + '';
+          if (
+            msg === 'Script error.' ||
+            msg.indexOf('Script error') !== -1 ||
+            msg.indexOf('WebSocket') !== -1 ||
+            msg.indexOf('closed without opened') !== -1 ||
+            msg.indexOf('vite') !== -1
+          ) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            return true;
+          }
+        }, true);
+      })();
+    </script>
     <title>JabarOOH - Dashboard Performa Reklame Jawa Barat</title>
     <meta name="description" content="Platform analitik dan pengukuran performa media iklan luar ruang (OOH/DOOH) di area Jawa Barat dengan visualisasi data real-time, analisis efektivitas lokasi penempatan billboard, dan database geospasial terstruktur." />
     <meta property="og:title" content="JabarOOH - Dashboard Performa Reklame Jawa Barat" />

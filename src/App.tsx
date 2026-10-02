@@ -23,12 +23,23 @@ import { ReportGenerator } from './components/ReportGenerator';
 import { SpotDetailModal } from './components/SpotDetailModal';
 import { AddSpotModal } from './components/AddSpotModal';
 import { ExportModal } from './components/ExportModal';
+import { SecurityPortalGate } from './components/SecurityPortalGate';
+import { JabarOohAiAssistant } from './components/JabarOohAiAssistant';
+import { AuthSession, UserAccount } from './types/auth';
+import { getActiveSession, saveActiveSession } from './utils/authService';
 import { CheckCircle2, Database, Download, Server } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<NavTabType>('map');
   const [mapEngine, setMapEngine] = useState<'google' | 'leaflet'>('google');
   
+  // Security Authentication & Lock State
+  const [session, setSession] = useState<AuthSession | null>(() => getActiveSession());
+  const [isLocked, setIsLocked] = useState<boolean>(() => {
+    const s = getActiveSession();
+    return s ? s.isLocked : false;
+  });
+
   // Spots state loaded from server-side SQLite (ZERO LocalStorage / ZERO IndexedDB)
   const [spots, setSpots] = useState<BillboardSpot[]>(INITIAL_BILLBOARD_SPOTS);
   const [dbStatus, setDbStatus] = useState<'loading' | 'connected' | 'fallback'>('loading');
@@ -38,6 +49,7 @@ export default function App() {
   const [selectedSpot, setSelectedSpot] = useState<BillboardSpot | null>(null);
   const [detailModalSpot, setDetailModalSpot] = useState<BillboardSpot | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [prefilledSpot, setPrefilledSpot] = useState<Partial<BillboardSpot> | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -147,6 +159,22 @@ export default function App() {
     setActiveTab('map');
   };
 
+  // TAMPILAN PEMBUKA DENGAN KEAMANAN SISTEM KUNCI
+  if (!session || isLocked) {
+    return (
+      <SecurityPortalGate
+        onAuthenticated={(newSession) => {
+          setSession(newSession);
+          setIsLocked(false);
+          showToast(`Autentikasi terverifikasi. Selamat datang, ${newSession.user.fullName}!`);
+        }}
+        isLockScreenMode={isLocked}
+        currentUser={session?.user || null}
+        onCancelLockScreen={() => setIsLocked(false)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       {/* Toast Notification */}
@@ -161,11 +189,25 @@ export default function App() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenAddModal={() => setIsAddModalOpen(true)}
+        onOpenAddModal={() => {
+          setPrefilledSpot(null);
+          setIsAddModalOpen(true);
+        }}
         onOpenExportModal={() => setIsExportModalOpen(true)}
         totalSpotsCount={spots.length}
         isSyncing={isSyncing}
         lastSyncTime={lastSyncTime}
+        currentUser={session?.user || null}
+        onLockScreen={() => {
+          setIsLocked(true);
+          if (session) saveActiveSession({ ...session, isLocked: true });
+        }}
+        onLogout={() => {
+          setSession(null);
+          setIsLocked(false);
+          saveActiveSession(null);
+          showToast('Sesi operator telah diakhiri. Sistem terkunci.');
+        }}
       />
 
       {/* Main Content Area */}
@@ -335,8 +377,12 @@ export default function App() {
 
       <AddSpotModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setPrefilledSpot(null);
+        }}
         onAddSpot={handleAddSpot}
+        initialValues={prefilledSpot}
       />
 
       <ExportModal
@@ -344,6 +390,29 @@ export default function App() {
         onClose={() => setIsExportModalOpen(false)}
         spots={spots}
       />
+
+      {/* JabarOOH AI Assistant - Pojok Kanan Bawah */}
+      {session && !isLocked && (
+        <JabarOohAiAssistant
+          selectedSpot={selectedSpot}
+          onSelectSpotById={(codeOrId) => {
+            const found = spots.find(s => s.code === codeOrId || s.id === codeOrId);
+            if (found) {
+              setSelectedSpot(found);
+              setDetailModalSpot(found);
+            }
+          }}
+          onOpenAddSpotWithPrefill={(candidate) => {
+            setPrefilledSpot(candidate);
+            setIsAddModalOpen(true);
+            setToastMessage(`Form Tambah Titik terisi otomatis berdasarkan rekomendasi AI: ${candidate.name}`);
+          }}
+          onViewCandidateLocationOnMap={(lat, lng, label) => {
+            setActiveTab('map');
+            setToastMessage(`Menyorot koordinat calon titik baru: ${label} (${lat}, ${lng})`);
+          }}
+        />
+      )}
     </div>
   );
 }

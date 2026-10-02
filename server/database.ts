@@ -86,6 +86,13 @@ export function rowToBillboardSpot(row: DbSpotRow): any {
     viewingDistanceM: Number(row.viewing_distance_m),
     dailyGrossReach: Number(row.daily_gross_reach),
     vacDaily: Number(row.vac_daily),
+    traffic_density: (row as any).traffic_density ? Number((row as any).traffic_density) : Math.round(
+      Math.min(100, Math.max(25, 
+        (Number(row.daily_gross_reach) / 260000) * 45 + 
+        (Number(row.avg_dwell_time_sec) / 60) * 35 + 
+        ((50 - Math.min(50, Number(row.avg_speed_kmh))) / 50) * 20
+      ))
+    ),
     avgDwellTimeSec: Number(row.avg_dwell_time_sec),
     avgSpeedKmh: Number(row.avg_speed_kmh),
     trafficBreakdown: {

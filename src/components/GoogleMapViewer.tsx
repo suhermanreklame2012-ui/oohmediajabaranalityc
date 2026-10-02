@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback, Component, ErrorInfo, ReactNode } from 'react';
 import { 
   APIProvider, 
   Map, 
   AdvancedMarker, 
   InfoWindow, 
   useMap, 
-  useMapsLibrary,
+  useMapsLibrary, 
   Circle 
 } from '@vis.gl/react-google-maps';
 import { BillboardSpot } from '../types/ooh';
@@ -57,9 +57,15 @@ import {
 } from 'lucide-react';
 import { WEST_JAVA_COMPETITOR_ZONES, CompetitorZone } from '../data/competitorData';
 import { ClusteredBillboardMarkers } from './ClusteredBillboardMarkers';
-import { calculateSpotKpiMetrics, SpotKpiMetrics } from '../utils/kpiMetrics';
+import { 
+  calculateSpotKpiMetrics, 
+  SpotKpiMetrics,
+  calculateBillboardPerformanceDensity,
+  BillboardPerformanceDensity
+} from '../utils/kpiMetrics';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyB_cErEKUXi76tGidnv0ke-zhMtgGYyq-A';
+export const GOOGLE_MAPS_LIBRARIES: ('marker' | 'places' | 'geometry')[] = ['marker', 'places', 'geometry'];
 
 interface GoogleMapViewerProps {
   spots: BillboardSpot[];
@@ -69,76 +75,27 @@ interface GoogleMapViewerProps {
   onSwitchToLeaflet?: () => void;
 }
 
-// Inner helper component to handle live Google Maps Visualization HeatmapLayer for KPI Intensity (Monthly ROI & Conversion)
-function GoogleKpiHeatmapController({
-  spots,
-  showHeatmap,
-  metric = 'composite'
-}: {
-  spots: BillboardSpot[];
-  showHeatmap: boolean;
-  metric?: 'composite' | 'roi' | 'conversion';
-}) {
-  const map = useMap();
-  const visualizationLib = useMapsLibrary('visualization') as any;
-  const heatmapLayerRef = useRef<any>(null);
+// Graceful Error Boundary for map overlay controllers
+class MapErrorBoundary extends Component<{ children: ReactNode; fallback?: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode; fallback?: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
-  useEffect(() => {
-    if (!map || !visualizationLib) return;
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
 
-    if (!showHeatmap || spots.length === 0) {
-      if (heatmapLayerRef.current) {
-        heatmapLayerRef.current.setMap(null);
-        heatmapLayerRef.current = null;
-      }
-      return;
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.warn('Map overlay controller caught an error, handled safely:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || null;
     }
-
-    const data = spots.map(spot => {
-      const kpi = calculateSpotKpiMetrics(spot);
-      let weight = kpi.kpiIntensityScore;
-      if (metric === 'roi') {
-        weight = Math.min(100, Math.max(10, (kpi.monthlyRoiMultiplier / 6.0) * 100));
-      } else if (metric === 'conversion') {
-        weight = Math.min(100, Math.max(10, (kpi.monthlyConversionRatePct / 8.5) * 100));
-      }
-
-      return {
-        location: new google.maps.LatLng(spot.coordinates.lat, spot.coordinates.lng),
-        weight: weight
-      };
-    });
-
-    if (!heatmapLayerRef.current) {
-      heatmapLayerRef.current = new (visualizationLib.HeatmapLayer as any)({
-        data,
-        map,
-        radius: 48,
-        opacity: 0.85,
-        gradient: [
-          'rgba(6, 182, 212, 0)',    // Transparent cyan
-          'rgba(6, 182, 212, 0.45)', // Cyan
-          'rgba(16, 185, 129, 0.75)',// Emerald Green
-          'rgba(245, 158, 11, 0.85)',// Amber Gold
-          'rgba(249, 115, 22, 0.92)',// Orange
-          'rgba(239, 68, 68, 0.98)', // Crimson Red
-          'rgba(225, 29, 72, 1)'     // Rose peak
-        ]
-      });
-    } else {
-      heatmapLayerRef.current.setData(data);
-      heatmapLayerRef.current.setMap(map);
-    }
-
-    return () => {
-      if (heatmapLayerRef.current) {
-        heatmapLayerRef.current.setMap(null);
-        heatmapLayerRef.current = null;
-      }
-    };
-  }, [map, visualizationLib, showHeatmap, spots, metric]);
-
-  return null;
+    return this.props.children;
+  }
 }
 
 // Inner helper component to handle live Google TrafficLayer
@@ -293,6 +250,11 @@ export function GoogleMapViewer({
   const [showTrafficLayer, setShowTrafficLayer] = useState<boolean>(true);
   const [isClusteringActive, setIsClusteringActive] = useState<boolean>(true);
   const [showCompetitorLayer, setShowCompetitorLayer] = useState<boolean>(false);
+  const [showTrafficDensityHeatmap, setShowTrafficDensityHeatmap] = useState<boolean>(true);
+  const [trafficHeatmapRadius, setTrafficHeatmapRadius] = useState<number>(55);
+  const [trafficHeatmapOpacity, setTrafficHeatmapOpacity] = useState<number>(0.85);
+  const [heatmapMetricMode, setHeatmapMetricMode] = useState<'composite' | 'traffic' | 'impressions'>('composite');
+  const [heatmapThresholdFilter, setHeatmapThresholdFilter] = useState<'all' | 'top50' | 'elite'>('all');
   const [showKpiHeatmap, setShowKpiHeatmap] = useState<boolean>(false);
   const [kpiHeatmapMetric, setKpiHeatmapMetric] = useState<'composite' | 'roi' | 'conversion'>('composite');
   const [selectedCompetitorZone, setSelectedCompetitorZone] = useState<CompetitorZone | null>(null);
@@ -380,6 +342,10 @@ export function GoogleMapViewer({
     setShowTrafficLayer(prev => !prev);
   };
 
+  const handleToggleTrafficDensityHeatmap = () => {
+    setShowTrafficDensityHeatmap(prev => !prev);
+  };
+
   const handleToggleKpiHeatmap = () => {
     setShowKpiHeatmap(prev => !prev);
   };
@@ -449,6 +415,32 @@ export function GoogleMapViewer({
   const top5TotalDailyImpressions = useMemo(() => {
     return top5ViewportSpots.reduce((acc, s) => acc + s.dailyGrossReach, 0);
   }, [top5ViewportSpots]);
+
+  // Average traffic density of filtered spots based on 'traffic_density'
+  const avgTrafficDensity = useMemo(() => {
+    if (filteredSpots.length === 0) return 0;
+    const sum = filteredSpots.reduce((acc, s) => {
+      const d = s.traffic_density ?? Math.min(100, Math.max(25, Math.round(
+        ((s.dailyGrossReach || 0) / 260000) * 45 + 
+        ((s.avgDwellTimeSec || 30) / 60) * 35 + 
+        ((50 - Math.min(50, s.avgSpeedKmh || 30)) / 50) * 20
+      )));
+      return acc + d;
+    }, 0);
+    return Math.round(sum / filteredSpots.length);
+  }, [filteredSpots]);
+
+  // Count of spots with high/extreme traffic concentration (traffic_density >= 75)
+  const highTrafficSpotsCount = useMemo(() => {
+    return filteredSpots.filter(s => {
+      const d = s.traffic_density ?? Math.min(100, Math.max(25, Math.round(
+        ((s.dailyGrossReach || 0) / 260000) * 45 + 
+        ((s.avgDwellTimeSec || 30) / 60) * 35 + 
+        ((50 - Math.min(50, s.avgSpeedKmh || 30)) / 50) * 20
+      )));
+      return d >= 75;
+    }).length;
+  }, [filteredSpots]);
 
   // Hotspots pool filtered by active regency if filtered, or all
   const filteredHotspots = useMemo(() => {
@@ -552,7 +544,7 @@ export function GoogleMapViewer({
       apiKey={GOOGLE_MAPS_API_KEY} 
       language="id" 
       region="ID"
-      libraries={['marker', 'visualization', 'places', 'geometry']}
+      libraries={GOOGLE_MAPS_LIBRARIES}
     >
       <div className={`relative w-full ${isFullscreen ? 'h-screen fixed inset-0 z-50' : 'h-[calc(100vh-4rem)]'} flex flex-col overflow-hidden bg-slate-950 font-sans`}>
         
@@ -687,6 +679,25 @@ export function GoogleMapViewer({
                   showTrafficLayer ? 'bg-red-500/30 text-red-200' : 'bg-slate-800 text-slate-500'
                 }`}>
                   {showTrafficLayer ? 'LIVE' : 'OFF'}
+                </span>
+              </button>
+
+              {/* Real-Time Traffic Density Heatmap Toggle ('traffic_density') */}
+              <button
+                onClick={handleToggleTrafficDensityHeatmap}
+                className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 border ${
+                  showTrafficDensityHeatmap
+                    ? 'bg-gradient-to-r from-amber-500/25 to-rose-500/25 text-amber-300 border-amber-400/80 shadow-md shadow-amber-500/20 ring-1 ring-amber-400/50'
+                    : 'text-slate-400 hover:text-white border-transparent hover:bg-slate-800'
+                }`}
+                title="Visualisasikan Konsentrasi Lalu Lintas Real-Time (Heatmap Layer 'traffic_density')"
+              >
+                <Activity className={`w-3.5 h-3.5 ${showTrafficDensityHeatmap ? 'text-amber-400 animate-pulse' : 'text-slate-400'}`} />
+                <span>Heatmap Trafik</span>
+                <span className={`text-[9px] px-1 py-0.2 rounded font-mono font-bold ${
+                  showTrafficDensityHeatmap ? 'bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-500'
+                }`}>
+                  {showTrafficDensityHeatmap ? 'DENSITY' : 'OFF'}
                 </span>
               </button>
 
@@ -834,6 +845,63 @@ export function GoogleMapViewer({
                   onClick={() => setShowCompetitorLayer(false)}
                   className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
                   title="Sembunyikan Layer Kompetitor"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Active Traffic Density Heatmap Insight Ribbon */}
+          {showTrafficDensityHeatmap && (
+            <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-slate-950/95 backdrop-blur-md border border-amber-500/50 rounded-xl shadow-2xl text-xs text-slate-200 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="flex items-center gap-1.5 font-bold text-amber-400 shrink-0">
+                  <Activity className="w-4 h-4 text-amber-400 animate-pulse" />
+                  Heatmap Konsentrasi Trafik Real-Time ('traffic_density'):
+                </span>
+
+                <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-0.5 rounded-md bg-slate-900 border border-slate-700 font-mono text-slate-300">
+                  <span>Rerata Titik:</span>
+                  <strong className="text-amber-300 font-bold">{avgTrafficDensity}/100</strong>
+                </span>
+
+                <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                  <span>{highTrafficSpotsCount} Titik Padat/Macet Tinggi (≥75)</span>
+                </span>
+
+                {/* Thermal gradient legend */}
+                <div className="hidden sm:flex items-center gap-1.5 pl-2 border-l border-slate-800 text-[10px] text-slate-400">
+                  <span>Gradien:</span>
+                  <div className="flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" title="Lancar (<40)" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" title="Normal (40-60)" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400" title="Ramai (60-75)" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-orange-500" title="Padat (75-85)" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-purple-500" title="Macet Total (>85)" />
+                  </div>
+                  <span className="text-[9px] text-slate-500 font-medium">(Lancar → Macet Total)</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[11px] text-slate-400 hidden md:inline font-medium">Radius:</span>
+                <input
+                  type="range"
+                  min="30"
+                  max="80"
+                  value={trafficHeatmapRadius}
+                  onChange={(e) => setTrafficHeatmapRadius(Number(e.target.value))}
+                  className="w-16 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-400"
+                  title={`Radius Heatmap: ${trafficHeatmapRadius}px`}
+                />
+                <span className="text-[10px] font-mono text-amber-300 w-7">{trafficHeatmapRadius}px</span>
+
+                <button
+                  onClick={() => setShowTrafficDensityHeatmap(false)}
+                  className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
+                  title="Sembunyikan Heatmap Trafik"
                 >
                   ✕
                 </button>
@@ -1134,6 +1202,19 @@ export function GoogleMapViewer({
             <Zap className={`w-4 h-4 ${showQuickView ? 'fill-amber-400 text-amber-400' : ''}`} />
           </button>
 
+          {/* Real-Time Traffic Density Heatmap Floating Toggle */}
+          <button
+            onClick={handleToggleTrafficDensityHeatmap}
+            className={`p-2 border rounded-lg shadow-xl transition-all flex items-center justify-center ${
+              showTrafficDensityHeatmap 
+                ? 'bg-gradient-to-tr from-amber-500 to-rose-500 text-slate-950 border-amber-300 font-bold ring-2 ring-amber-400/50 shadow-lg shadow-amber-400/30' 
+                : 'bg-slate-900/95 border-slate-800 text-slate-400 hover:text-white'
+            }`}
+            title={`Heatmap Konsentrasi Trafik Real-Time ('traffic_density'): ${showTrafficDensityHeatmap ? 'Aktif' : 'Nonaktif'}`}
+          >
+            <Activity className={`w-4 h-4 ${showTrafficDensityHeatmap ? 'text-slate-950 font-bold animate-pulse' : 'text-amber-400'}`} />
+          </button>
+
           {/* KPI Heatmap Toggle */}
           <button
             onClick={handleToggleKpiHeatmap}
@@ -1344,6 +1425,53 @@ export function GoogleMapViewer({
                   }`} />
                 </div>
               </div>
+
+              {/* Real-Time Traffic Density Heatmap ('traffic_density') */}
+              <div 
+                onClick={handleToggleTrafficDensityHeatmap}
+                className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                  showTrafficDensityHeatmap
+                    ? 'bg-amber-500/10 border-amber-400/50 text-white font-bold'
+                    : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-amber-400" />
+                  <div>
+                    <span className="block text-xs">Heatmap Konsentrasi Trafik ('traffic_density')</span>
+                    <span className="text-[10px] text-slate-500 font-normal">Visualisasi termal intensitas lalu lintas titik reklame</span>
+                  </div>
+                </div>
+                <div className={`w-8 h-4 rounded-full transition-colors relative flex items-center px-0.5 ${
+                  showTrafficDensityHeatmap ? 'bg-amber-400' : 'bg-slate-800'
+                }`}>
+                  <div className={`w-3 h-3 rounded-full bg-slate-950 transition-transform ${
+                    showTrafficDensityHeatmap ? 'translate-x-4' : 'translate-x-0'
+                  }`} />
+                </div>
+              </div>
+
+              {/* Slider for Heatmap Radius when active */}
+              {showTrafficDensityHeatmap && (
+                <div className="p-2.5 bg-slate-950/90 rounded-xl border border-slate-800 space-y-1.5 ml-2">
+                  <div className="flex items-center justify-between text-[11px] text-slate-300">
+                    <span>Radius Difusi Heatmap:</span>
+                    <span className="font-mono text-amber-300 font-bold">{trafficHeatmapRadius}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="25"
+                    max="85"
+                    value={trafficHeatmapRadius}
+                    onChange={(e) => setTrafficHeatmapRadius(Number(e.target.value))}
+                    className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-400"
+                  />
+                  <div className="flex justify-between text-[9px] text-slate-500">
+                    <span>25px (Fokus)</span>
+                    <span>85px (Luas)</span>
+                  </div>
+                </div>
+              )}
 
               {/* Marker Clustering Layer */}
               <div 
@@ -1643,28 +1771,93 @@ export function GoogleMapViewer({
               );
             })}
 
-            {/* KPI Heatmap: Google Maps Visualization HeatmapLayer (Smooth Gaussian Thermal Intensity) */}
-            <GoogleKpiHeatmapController
-              spots={filteredSpots}
-              showHeatmap={showKpiHeatmap}
-              metric={kpiHeatmapMetric}
-            />
+            {/* REAL-TIME TRAFFIC DENSITY HEATMAP LAYER ('traffic_density') */}
+            {showTrafficDensityHeatmap && filteredSpots.map(spot => {
+              const rawDensity = spot.traffic_density;
+              const densityScore = (typeof rawDensity === 'number' && !isNaN(rawDensity) && rawDensity > 0)
+                ? rawDensity
+                : Math.min(100, Math.max(25, Math.round(
+                    ((spot.dailyGrossReach || 0) / 260000) * 45 + 
+                    ((spot.avgDwellTimeSec || 30) / 60) * 35 + 
+                    ((50 - Math.min(50, spot.avgSpeedKmh || 30)) / 50) * 20
+                  )));
+
+              const color = densityScore >= 85 
+                ? '#9333ea' // Ungu / Puncak Macet
+                : densityScore >= 75
+                ? '#ef4444' // Merah / Macet
+                : densityScore >= 60
+                ? '#f97316' // Oranye / Padat Merayap
+                : densityScore >= 45
+                ? '#eab308' // Kuning / Ramai Lancar
+                : '#06b6d4'; // Cyan / Lancar
+
+              // Scaled by trafficHeatmapRadius (25px - 85px) and density
+              const outerRadiusMeters = (130 + (trafficHeatmapRadius * 7.5)) * (0.6 + (densityScore / 100) * 0.7);
+              const midRadiusMeters = outerRadiusMeters * 0.65;
+              const innerRadiusMeters = outerRadiusMeters * 0.32;
+
+              return (
+                <React.Fragment key={`traffic-heatmap-halo-${spot.id}`}>
+                  {/* Outer Diffusion Wave */}
+                  <Circle
+                    center={{ lat: spot.coordinates.lat, lng: spot.coordinates.lng }}
+                    radius={outerRadiusMeters}
+                    strokeColor={color}
+                    strokeOpacity={trafficHeatmapOpacity * 0.35}
+                    strokeWeight={1.2}
+                    fillColor={color}
+                    fillOpacity={trafficHeatmapOpacity * 0.16}
+                  />
+                  {/* Mid Thermal Transition */}
+                  <Circle
+                    center={{ lat: spot.coordinates.lat, lng: spot.coordinates.lng }}
+                    radius={midRadiusMeters}
+                    strokeColor={color}
+                    strokeOpacity={trafficHeatmapOpacity * 0.6}
+                    strokeWeight={1.5}
+                    fillColor={color}
+                    fillOpacity={trafficHeatmapOpacity * 0.28}
+                  />
+                  {/* High Intensity Core Ring */}
+                  <Circle
+                    center={{ lat: spot.coordinates.lat, lng: spot.coordinates.lng }}
+                    radius={innerRadiusMeters}
+                    strokeColor={color}
+                    strokeOpacity={trafficHeatmapOpacity * 0.9}
+                    strokeWeight={2}
+                    fillColor={color}
+                    fillOpacity={trafficHeatmapOpacity * 0.48}
+                  />
+                </React.Fragment>
+              );
+            })}
 
             {/* KPI Heatmap: Visual Intensity Halos over Billboard Markers */}
             {showKpiHeatmap && filteredSpots.map(spot => {
               const kpi = calculateSpotKpiMetrics(spot);
               const radiusMeters = 180 + (kpi.kpiIntensityScore * 4.2);
               return (
-                <Circle
-                  key={`kpi-halo-${spot.id}`}
-                  center={{ lat: spot.coordinates.lat, lng: spot.coordinates.lng }}
-                  radius={radiusMeters}
-                  strokeColor={kpi.colorHex}
-                  strokeOpacity={0.8}
-                  strokeWeight={2}
-                  fillColor={kpi.colorHex}
-                  fillOpacity={0.22}
-                />
+                <React.Fragment key={`kpi-halo-${spot.id}`}>
+                  <Circle
+                    center={{ lat: spot.coordinates.lat, lng: spot.coordinates.lng }}
+                    radius={radiusMeters}
+                    strokeColor={kpi.colorHex}
+                    strokeOpacity={0.8}
+                    strokeWeight={1.5}
+                    fillColor={kpi.colorHex}
+                    fillOpacity={0.20}
+                  />
+                  <Circle
+                    center={{ lat: spot.coordinates.lat, lng: spot.coordinates.lng }}
+                    radius={radiusMeters * 0.45}
+                    strokeColor={kpi.colorHex}
+                    strokeOpacity={0.95}
+                    strokeWeight={2}
+                    fillColor={kpi.colorHex}
+                    fillOpacity={0.42}
+                  />
+                </React.Fragment>
               );
             })}
 
@@ -1738,6 +1931,22 @@ export function GoogleMapViewer({
                       <span className="font-bold text-emerald-600">{infoWindowSpot.vacDaily.toLocaleString('id-ID')}</span>
                     </div>
                   </div>
+
+                  {/* Traffic Density Highlight when Heatmap is Active */}
+                  {showTrafficDensityHeatmap && (
+                    <div className="bg-amber-50 border border-amber-300 p-2 rounded-lg text-[10px] font-mono mb-2 space-y-1">
+                      <div className="flex items-center justify-between text-amber-900 font-bold border-b border-amber-200 pb-1">
+                        <span>🚦 KONSENTRASI LALU LINTAS:</span>
+                        <span className="px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 font-black">
+                          {infoWindowSpot.traffic_density ?? Math.min(100, Math.max(25, Math.round(((infoWindowSpot.dailyGrossReach || 0) / 260000) * 45 + ((infoWindowSpot.avgDwellTimeSec || 30) / 60) * 35 + ((50 - Math.min(50, infoWindowSpot.avgSpeedKmh || 30)) / 50) * 20)))}/100
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] text-slate-600 pt-0.5">
+                        <span>DGR: {infoWindowSpot.dailyGrossReach.toLocaleString('id-ID')}</span>
+                        <span className="font-semibold text-amber-800">Dwell: {infoWindowSpot.avgDwellTimeSec}s @ {infoWindowSpot.avgSpeedKmh}km/j</span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* KPI Heatmap Metrics Highlight */}
                   {showKpiHeatmap && (

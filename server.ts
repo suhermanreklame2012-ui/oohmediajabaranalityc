@@ -1,8 +1,18 @@
+// Filter Node.js experimental warnings for clean server logs
+process.removeAllListeners('warning');
+process.on('warning', (warning) => {
+  if (warning.name === 'ExperimentalWarning' && (warning.message.includes('SQLite') || warning.message.includes('sqlite'))) {
+    return;
+  }
+  console.warn(warning);
+});
+
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import { patchViteClient } from './scripts/patchViteClient';
 import { 
   getAllSpotsFromDb, 
   insertSpotToDb, 
@@ -14,6 +24,9 @@ import {
 dotenv.config();
 
 async function startServer() {
+  // Ensure Vite client debug noise is muted
+  patchViteClient();
+
   const app = express();
   const PORT = 3000;
 
@@ -159,6 +172,49 @@ async function startServer() {
   });
 
   // -------------------------------------------------------------------------
+  // 4c. REST API: JABAROOH AI ASSISTANT (CONVERSATIONAL INTELLIGENCE CHAT)
+  // -------------------------------------------------------------------------
+  app.post('/api/ai/chat', async (req, res) => {
+    try {
+      const { message, history, selectedSpotId } = req.body;
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ success: false, error: 'Pesan pertanyaan wajib diisi' });
+      }
+
+      const { askJabarOohAssistant } = await import('./server/aiAssistantEngine');
+      const reply = await askJabarOohAssistant({
+        message,
+        history: history || [],
+        selectedSpotId
+      });
+
+      return res.json({ success: true, reply });
+    } catch (err: any) {
+      console.error('Error in JabarOOH AI Assistant:', err);
+      return res.status(500).json({ success: false, error: err.message || 'AI Assistant gagal memproses pertanyaan' });
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // 4d. REST API: JABAROOH NEW SITE RECOMMENDATIONS (TRAFFIC + DEMOGRAPHICS)
+  // -------------------------------------------------------------------------
+  app.get('/api/ai/site-recommendations', async (req, res) => {
+    try {
+      const { corridorFilter, targetAudience } = req.query;
+      const { generateNewLocationRecommendations } = await import('./server/siteRecommendationEngine');
+      const recommendations = await generateNewLocationRecommendations({
+        corridorFilter: corridorFilter as string,
+        targetAudience: targetAudience as string
+      });
+
+      return res.json({ success: true, count: recommendations.length, data: recommendations });
+    } catch (err: any) {
+      console.error('Error generating site recommendations:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Gagal menghasilkan rekomendasi titik baru' });
+    }
+  });
+
+  // -------------------------------------------------------------------------
   // 5. Geocoding Proxy Route using Google Maps Geocoding API
   // -------------------------------------------------------------------------
   app.get('/api/geocode', async (req, res) => {
@@ -191,7 +247,7 @@ async function startServer() {
   // -------------------------------------------------------------------------
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, hmr: false },
       appType: 'spa',
     });
     app.use(vite.middlewares);

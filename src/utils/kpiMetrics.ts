@@ -95,3 +95,95 @@ export function calculateSpotKpiMetrics(spot: BillboardSpot): SpotKpiMetrics {
     rationale
   };
 }
+
+export interface BillboardPerformanceDensity {
+  score: number; // 0 - 100
+  tier: 'Elite (Top Tier)' | 'Performa Tinggi' | 'Moderat' | 'Standar';
+  colorHex: string;
+  badgeGlow: string;
+  trafficScore: number;
+  impressionScore: number;
+  dailyImpressions: number;
+  vacDaily: number;
+  trafficDensity: number;
+  dwellTimeSec: number;
+  headline: string;
+}
+
+/**
+ * Calculates High-Performance Billboard Density Index (HPBI)
+ * Combines real-time traffic concentration, commuter dwell time,
+ * daily gross reach (impressions), and visibility adjusted contacts (VAC).
+ */
+export function calculateBillboardPerformanceDensity(
+  spot: BillboardSpot, 
+  metricMode: 'composite' | 'traffic' | 'impressions' = 'composite'
+): BillboardPerformanceDensity {
+  // 1. Current Traffic Component (Real-time density score 0-100 & commuter exposure dwell time)
+  const rawDensity = (typeof spot.traffic_density === 'number' && !isNaN(spot.traffic_density) && spot.traffic_density > 0)
+    ? spot.traffic_density
+    : Math.min(100, Math.max(25, Math.round(
+        ((spot.dailyGrossReach || 0) / 260000) * 45 + 
+        ((spot.avgDwellTimeSec || 30) / 60) * 35 + 
+        ((50 - Math.min(50, spot.avgSpeedKmh || 30)) / 50) * 20
+      )));
+
+  const dwellBonus = Math.min(15, ((spot.avgDwellTimeSec || 30) / 60) * 15);
+  const trafficScore = Math.min(100, Math.round(rawDensity * 0.85 + dwellBonus));
+
+  // 2. Impression Component (Daily Gross Reach DGR & Visibility Adjusted Contacts VAC)
+  const dgrRatio = Math.min(1.25, (spot.dailyGrossReach || 0) / 230000);
+  const vacRatio = Math.min(1.25, (spot.vacDaily || (spot.dailyGrossReach * 0.72)) / 175000);
+  const impressionScore = Math.min(100, Math.round((dgrRatio * 55) + (vacRatio * 45)));
+
+  // 3. Composite Calculation
+  let score = 50;
+  if (metricMode === 'traffic') {
+    score = trafficScore;
+  } else if (metricMode === 'impressions') {
+    score = impressionScore;
+  } else {
+    // Composite: 52% Impression Volume & Contact + 48% Traffic Congestion & Dwell
+    score = Math.round((impressionScore * 0.52) + (trafficScore * 0.48));
+  }
+  score = Math.min(100, Math.max(15, score));
+
+  // 4. Color Grading Spectrum & Tiers
+  let tier: BillboardPerformanceDensity['tier'] = 'Standar';
+  let colorHex = '#06b6d4'; // Cyan
+  let badgeGlow = 'rgba(6, 182, 212, 0.4)';
+
+  if (score >= 78) {
+    tier = 'Elite (Top Tier)';
+    colorHex = '#9333ea'; // Purple/Magenta (Apex Hotspot)
+    badgeGlow = 'rgba(147, 51, 234, 0.65)';
+  } else if (score >= 65) {
+    tier = 'Performa Tinggi';
+    colorHex = '#ef4444'; // Red
+    badgeGlow = 'rgba(239, 68, 68, 0.6)';
+  } else if (score >= 50) {
+    tier = 'Moderat';
+    colorHex = '#f97316'; // Orange
+    badgeGlow = 'rgba(249, 115, 22, 0.5)';
+  } else if (score >= 38) {
+    tier = 'Moderat';
+    colorHex = '#eab308'; // Amber
+    badgeGlow = 'rgba(234, 179, 8, 0.45)';
+  }
+
+  const headline = `Skor ${score}/100 · ${spot.dailyGrossReach.toLocaleString('id-ID')} Impresi/hari · Densitas Trafik ${rawDensity}/100`;
+
+  return {
+    score,
+    tier,
+    colorHex,
+    badgeGlow,
+    trafficScore,
+    impressionScore,
+    dailyImpressions: spot.dailyGrossReach,
+    vacDaily: spot.vacDaily,
+    trafficDensity: rawDensity,
+    dwellTimeSec: spot.avgDwellTimeSec,
+    headline
+  };
+}

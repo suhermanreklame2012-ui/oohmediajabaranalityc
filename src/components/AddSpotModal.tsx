@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BillboardSpot, BillboardType, OccupancyStatus, OrientationType, RoadType } from '../types/ooh';
 import { WEST_JAVA_REGENCIES, calculateLocationEffectiveness } from '../data/jabarData';
 import { X, Plus, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -7,9 +7,10 @@ interface AddSpotModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddSpot: (spot: BillboardSpot) => void;
+  initialValues?: Partial<BillboardSpot> | null;
 }
 
-export function AddSpotModal({ isOpen, onClose, onAddSpot }: AddSpotModalProps) {
+export function AddSpotModal({ isOpen, onClose, onAddSpot, initialValues }: AddSpotModalProps) {
   const [name, setName] = useState('');
   const [regency, setRegency] = useState(WEST_JAVA_REGENCIES[0].name);
   const [district, setDistrict] = useState('Pusat Kota');
@@ -27,6 +28,27 @@ export function AddSpotModal({ isOpen, onClose, onAddSpot }: AddSpotModalProps) 
   const [brand, setBrand] = useState<string>('');
   const [status, setStatus] = useState<OccupancyStatus>('Occupied');
   const [errorMsg, setErrorMsg] = useState<string>('');
+
+  useEffect(() => {
+    if (isOpen && initialValues) {
+      if (initialValues.name) setName(initialValues.name);
+      if (initialValues.regency) setRegency(initialValues.regency);
+      if (initialValues.district) setDistrict(initialValues.district);
+      if (initialValues.roadName) setRoadName(initialValues.roadName);
+      if (initialValues.roadType) setRoadType(initialValues.roadType);
+      if (initialValues.type) setType(initialValues.type);
+      if (initialValues.dimensions?.width) setWidth(initialValues.dimensions.width);
+      if (initialValues.dimensions?.height) setHeight(initialValues.dimensions.height);
+      if (initialValues.orientation) setOrientation(initialValues.orientation);
+      if (initialValues.coordinates?.lat) setLat(initialValues.coordinates.lat.toString());
+      if (initialValues.coordinates?.lng) setLng(initialValues.coordinates.lng.toString());
+      if (initialValues.dailyGrossReach) setDailyReach(initialValues.dailyGrossReach);
+      if (initialValues.avgDwellTimeSec) setDwellSec(initialValues.avgDwellTimeSec);
+      if (initialValues.ratePerMonthIdr) setRateJuta(Math.round(initialValues.ratePerMonthIdr / 1000000));
+      if (initialValues.currentBrand) setBrand(initialValues.currentBrand);
+      if (initialValues.occupancyStatus) setStatus(initialValues.occupancyStatus);
+    }
+  }, [isOpen, initialValues]);
 
   if (!isOpen) return null;
 

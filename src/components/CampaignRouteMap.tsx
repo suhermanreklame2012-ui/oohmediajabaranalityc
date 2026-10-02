@@ -9,6 +9,7 @@ import {
   Polyline 
 } from '@vis.gl/react-google-maps';
 import { BillboardSpot, OptimizedTravelRoute } from '../types/ooh';
+import { GOOGLE_MAPS_LIBRARIES } from './GoogleMapViewer';
 import { 
   Navigation, 
   MapPin, 
@@ -410,7 +411,7 @@ export function CampaignRouteMap({
             apiKey={GOOGLE_MAPS_API_KEY}
             language="id" 
             region="ID"
-            libraries={['marker', 'visualization', 'places', 'geometry']}
+            libraries={GOOGLE_MAPS_LIBRARIES}
           >
             <Map
               defaultCenter={{

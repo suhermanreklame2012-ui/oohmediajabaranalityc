@@ -1,0 +1,4631 @@
+[
+  {
+    "id": "spot-01",
+    "code": "JBR-BDG-001",
+    "name": "Simpang Lima Asia Afrika Curved LED",
+    "regency": "Kota Bandung",
+    "district": "Sumur Bandung",
+    "address": "Jl. Asia Afrika No. 120 (Simpang Lima Sunda - Asia Afrika)",
+    "roadName": "Jl. Asia Afrika / Simpang Lima",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -6.9213,
+      "lng": 107.6186
+    },
+    "type": "LED Videotron",
+    "dimensions": {
+      "width": 24,
+      "height": 12,
+      "areaM2": 288,
+      "sides": 1
+    },
+    "orientation": "Curved Corner (Sudut Simpang)",
+    "heightAboveGroundM": 8.5,
+    "viewingDistanceM": 220,
+    "dailyGrossReach": 245000,
+    "vacDaily": 218000,
+    "avgDwellTimeSec": 52,
+    "avgSpeedKmh": 14,
+    "trafficBreakdown": {
+      "motorcycles": 58,
+      "privateCars": 32,
+      "publicTransport": 8,
+      "commercialTrucks": 2
+    },
+    "visibilityScore": 96,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 94,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Bank BJB Digital Banking",
+    "ratePerMonthIdr": 165000000,
+    "cpmIdr": 22400,
+    "lightingType": "P6 Ultra-Bright SMD LED Full RGB",
+    "powerConsumptionKw": 18.5,
+    "facingDirection": "Arus Sudirman & Gatot Subroto menuju Alun-Alun Bandung",
+    "targetDemographics": "Urban Professionals, Eksekutif Finansial, Wisatawan Domestik",
+    "traffic_density": 93,
+    "avgFrequency": 3.8,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 245000,
+        "vac": 218000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 230300,
+        "vac": 204920,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 245000,
+        "vac": 218000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 281750,
+        "vac": 250700,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 281750,
+        "vac": 250700,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 306250,
+        "vac": 272500,
+        "trafficIndex": 125,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 306250,
+        "vac": 272500,
+        "trafficIndex": 125,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 245000,
+        "vac": 218000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 245000,
+        "vac": 218000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 245000,
+        "vac": 218000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 245000,
+        "vac": 218000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 313600,
+        "vac": 279040,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-02",
+    "code": "JBR-BDG-002",
+    "name": "Gerbang Tol Pasteur Exit Gateway",
+    "regency": "Kota Bandung",
+    "district": "Sukajadi",
+    "address": "Jl. Dr. Djunjunan (Pasteur) KM 0.5 Arah Pusat Kota",
+    "roadName": "Jl. Dr. Djunjunan (Pasteur Exit Tol)",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -6.8924,
+      "lng": 107.5794
+    },
+    "type": "Megatron",
+    "dimensions": {
+      "width": 20,
+      "height": 10,
+      "areaM2": 200,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 12,
+    "viewingDistanceM": 350,
+    "dailyGrossReach": 285000,
+    "vacDaily": 259000,
+    "avgDwellTimeSec": 42,
+    "avgSpeedKmh": 28,
+    "trafficBreakdown": {
+      "motorcycles": 42,
+      "privateCars": 48,
+      "publicTransport": 6,
+      "commercialTrucks": 4
+    },
+    "visibilityScore": 98,
+    "clutterLevel": "Rendah (Unobstructed)",
+    "effectivenessScore": 96,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Telkomsel 5G Hypernet",
+    "ratePerMonthIdr": 195000000,
+    "cpmIdr": 22800,
+    "lightingType": "P8 Outdoor High-Contrast Videotron",
+    "powerConsumptionKw": 22,
+    "facingDirection": "Keluar Gerbang Tol Pasteur menuju Jl. Layang Pasupati & Gasibu",
+    "targetDemographics": "Wisatawan Jakarta-Bandung, Pebisnis Komuter, Pemilik Mobil Pribadi",
+    "traffic_density": 81,
+    "avgFrequency": 3.8,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 285000,
+        "vac": 259000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 267900,
+        "vac": 243460,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 285000,
+        "vac": 259000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 327750,
+        "vac": 297850,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 327750,
+        "vac": 297850,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 356250,
+        "vac": 323750,
+        "trafficIndex": 125,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 356250,
+        "vac": 323750,
+        "trafficIndex": 125,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 285000,
+        "vac": 259000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 285000,
+        "vac": 259000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 285000,
+        "vac": 259000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 285000,
+        "vac": 259000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 364800,
+        "vac": 331520,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-03",
+    "code": "JBR-BDG-003",
+    "name": "Dago Simpang McDonald Landmark LED",
+    "regency": "Kota Bandung",
+    "district": "Coblong",
+    "address": "Jl. Ir. H. Juanda No. 154 (Simpang Dago Cikapayang Bawah)",
+    "roadName": "Jl. Ir. H. Juanda (Dago)",
+    "roadType": "Kawasan Komersial & Pusat Bisnis",
+    "coordinates": {
+      "lat": -6.8863,
+      "lng": 107.6149
+    },
+    "type": "LED Videotron",
+    "dimensions": {
+      "width": 16,
+      "height": 8,
+      "areaM2": 128,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 7,
+    "viewingDistanceM": 180,
+    "dailyGrossReach": 178000,
+    "vacDaily": 156000,
+    "avgDwellTimeSec": 48,
+    "avgSpeedKmh": 16,
+    "trafficBreakdown": {
+      "motorcycles": 64,
+      "privateCars": 30,
+      "publicTransport": 5,
+      "commercialTrucks": 1
+    },
+    "visibilityScore": 93,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 91,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Shopee Garansi Tepat Waktu",
+    "ratePerMonthIdr": 120000000,
+    "cpmIdr": 22400,
+    "lightingType": "P6 SMD LED 6500 nits",
+    "powerConsumptionKw": 14,
+    "facingDirection": "Arus Dago Atas & Cikapayang Flyover",
+    "targetDemographics": "Gen-Z, Mahasiswa ITB/UNPAD, Komunitas Gaya Hidup & Kafe",
+    "traffic_density": 78,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 178000,
+        "vac": 156000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 167320,
+        "vac": 146640,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 178000,
+        "vac": 156000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 204700,
+        "vac": 179400,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 204700,
+        "vac": 179400,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 222500,
+        "vac": 195000,
+        "trafficIndex": 125,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 222500,
+        "vac": 195000,
+        "trafficIndex": 125,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 178000,
+        "vac": 156000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 178000,
+        "vac": 156000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 178000,
+        "vac": 156000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 178000,
+        "vac": 156000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 227840,
+        "vac": 199680,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-04",
+    "code": "JBR-BDG-004",
+    "name": "Riau Junction Simpang Trunojoyo Billboard",
+    "regency": "Kota Bandung",
+    "district": "Bandung Wetan",
+    "address": "Jl. R.E. Martadinata (Riau) No. 42",
+    "roadName": "Jl. R.E. Martadinata",
+    "roadType": "Kawasan Komersial & Pusat Bisnis",
+    "coordinates": {
+      "lat": -6.9084,
+      "lng": 107.6138
+    },
+    "type": "Static Billboard",
+    "dimensions": {
+      "width": 12,
+      "height": 6,
+      "areaM2": 72,
+      "sides": 2
+    },
+    "orientation": "Double Sided (Dua Sisi)",
+    "heightAboveGroundM": 9,
+    "viewingDistanceM": 150,
+    "dailyGrossReach": 142000,
+    "vacDaily": 118000,
+    "avgDwellTimeSec": 36,
+    "avgSpeedKmh": 18,
+    "trafficBreakdown": {
+      "motorcycles": 60,
+      "privateCars": 34,
+      "publicTransport": 5,
+      "commercialTrucks": 1
+    },
+    "visibilityScore": 89,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 86,
+    "occupancyStatus": "Available",
+    "ratePerMonthIdr": 65000000,
+    "cpmIdr": 15200,
+    "lightingType": "Frontlite High-Lumen Metal Halide 8x400W",
+    "powerConsumptionKw": 3.2,
+    "facingDirection": "Dua arah Jl. Riau (Factory Outlet & Heritage Zone)",
+    "targetDemographics": "Shoppers, Wisata Belanja, Family Dining",
+    "traffic_density": 63,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 142000,
+        "vac": 118000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 133480,
+        "vac": 110920,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 142000,
+        "vac": 118000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 163300,
+        "vac": 135700,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 163300,
+        "vac": 135700,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 177500,
+        "vac": 147500,
+        "trafficIndex": 125,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 177500,
+        "vac": 147500,
+        "trafficIndex": 125,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 142000,
+        "vac": 118000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 142000,
+        "vac": 118000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 142000,
+        "vac": 118000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 142000,
+        "vac": 118000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 181760,
+        "vac": 151040,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-05",
+    "code": "JBR-BDG-005",
+    "name": "Simpang Buah Batu Exit Tol Purbaleunyi",
+    "regency": "Kota Bandung",
+    "district": "Bandung Kidul",
+    "address": "Jl. Buah Batu Dekat Gerbang Tol KM 142",
+    "roadName": "Jl. Terusan Buah Batu",
+    "roadType": "Arteri Sekunder",
+    "coordinates": {
+      "lat": -6.9632,
+      "lng": 107.6394
+    },
+    "type": "Static Billboard",
+    "dimensions": {
+      "width": 16,
+      "height": 8,
+      "areaM2": 128,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 10,
+    "viewingDistanceM": 260,
+    "dailyGrossReach": 195000,
+    "vacDaily": 168000,
+    "avgDwellTimeSec": 58,
+    "avgSpeedKmh": 12,
+    "trafficBreakdown": {
+      "motorcycles": 56,
+      "privateCars": 36,
+      "publicTransport": 5,
+      "commercialTrucks": 3
+    },
+    "visibilityScore": 92,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 89,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Gojek Pasti Ada Jalan",
+    "ratePerMonthIdr": 85000000,
+    "cpmIdr": 14500,
+    "lightingType": "Backlite LED Uniform Grid 120W x 10",
+    "powerConsumptionKw": 2.8,
+    "facingDirection": "Keluar Exit Tol Buah Batu menuju Pusat Kota & Dayeuhkolot",
+    "targetDemographics": "Komuter Bandung Selatan, Mahasiswa Telkom University, Residensial",
+    "traffic_density": 88,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 195000,
+        "vac": 168000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 183300,
+        "vac": 157920,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 195000,
+        "vac": 168000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 224250,
+        "vac": 193200,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 224250,
+        "vac": 193200,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 243750,
+        "vac": 210000,
+        "trafficIndex": 125,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 243750,
+        "vac": 210000,
+        "trafficIndex": 125,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 195000,
+        "vac": 168000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 195000,
+        "vac": 168000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 195000,
+        "vac": 168000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 195000,
+        "vac": 168000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 249600,
+        "vac": 215040,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-06",
+    "code": "JBR-BDG-006",
+    "name": "Pasirkaliki 23 Paskal Mall Vertical LED",
+    "regency": "Kota Bandung",
+    "district": "Andir",
+    "address": "Jl. Pasirkaliki No. 25-27 (Akses Utama 23 Paskal)",
+    "roadName": "Jl. Pasirkaliki",
+    "roadType": "Kawasan Komersial & Pusat Bisnis",
+    "coordinates": {
+      "lat": -6.9149,
+      "lng": 107.5996
+    },
+    "type": "LED Videotron",
+    "dimensions": {
+      "width": 8,
+      "height": 16,
+      "areaM2": 128,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 6,
+    "viewingDistanceM": 140,
+    "dailyGrossReach": 162000,
+    "vacDaily": 144000,
+    "avgDwellTimeSec": 46,
+    "avgSpeedKmh": 15,
+    "trafficBreakdown": {
+      "motorcycles": 52,
+      "privateCars": 42,
+      "publicTransport": 5,
+      "commercialTrucks": 1
+    },
+    "visibilityScore": 94,
+    "clutterLevel": "Tinggi (Kompetitif)",
+    "effectivenessScore": 88,
+    "occupancyStatus": "Reserved",
+    "currentBrand": "Samsung Galaxy Z Fold",
+    "ratePerMonthIdr": 135000000,
+    "cpmIdr": 27700,
+    "lightingType": "P4 Indoor/Outdoor High Definition LED",
+    "powerConsumptionKw": 12,
+    "facingDirection": "Arus Stasiun Bandung menuju PVJ & Sukajadi",
+    "targetDemographics": "Middle-Up Urbanites, Mall Visitors, Gadget Enthusiasts",
+    "traffic_density": 74,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 162000,
+        "vac": 144000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 152280,
+        "vac": 135360,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 162000,
+        "vac": 144000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 186300,
+        "vac": 165600,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 186300,
+        "vac": 165600,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 202500,
+        "vac": 180000,
+        "trafficIndex": 125,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 202500,
+        "vac": 180000,
+        "trafficIndex": 125,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 162000,
+        "vac": 144000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 162000,
+        "vac": 144000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 162000,
+        "vac": 144000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 162000,
+        "vac": 144000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 207360,
+        "vac": 184320,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-07",
+    "code": "JBR-BDG-007",
+    "name": "Flyover Pasupati Cikapayang Iconic Bridge JPO",
+    "regency": "Kota Bandung",
+    "district": "Coblong",
+    "address": "Jl. Layang Prof. Mochtar Kusumaatmadja (Pasupati)",
+    "roadName": "Flyover Pasupati",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -6.8996,
+      "lng": 107.6105
+    },
+    "type": "JPO Pedestrian Bridge",
+    "dimensions": {
+      "width": 28,
+      "height": 4,
+      "areaM2": 112,
+      "sides": 2
+    },
+    "orientation": "Cantilever Overhead",
+    "heightAboveGroundM": 5.5,
+    "viewingDistanceM": 300,
+    "dailyGrossReach": 230000,
+    "vacDaily": 205000,
+    "avgDwellTimeSec": 25,
+    "avgSpeedKmh": 45,
+    "trafficBreakdown": {
+      "motorcycles": 62,
+      "privateCars": 35,
+      "publicTransport": 2,
+      "commercialTrucks": 1
+    },
+    "visibilityScore": 97,
+    "clutterLevel": "Rendah (Unobstructed)",
+    "effectivenessScore": 93,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Indosat Ooredoo Hutchison",
+    "ratePerMonthIdr": 110000000,
+    "cpmIdr": 16000,
+    "lightingType": "LED Strip Contour + Floodlight 500W",
+    "powerConsumptionKw": 4.5,
+    "facingDirection": "Arus Timur-Barat & Barat-Timur Layang Pasupati",
+    "targetDemographics": "Komuter Lintas Kota Bandung, Penglaju Pasteur-Surapati",
+    "traffic_density": 56,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 230000,
+        "vac": 205000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 216200,
+        "vac": 192700,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 230000,
+        "vac": 205000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 264500,
+        "vac": 235750,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 264500,
+        "vac": 235750,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 287500,
+        "vac": 256250,
+        "trafficIndex": 125,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 287500,
+        "vac": 256250,
+        "trafficIndex": 125,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 230000,
+        "vac": 205000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 230000,
+        "vac": 205000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 230000,
+        "vac": 205000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 230000,
+        "vac": 205000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 294400,
+        "vac": 262400,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-08",
+    "code": "JBR-BDG-008",
+    "name": "Jl. Soekarno Hatta MTC Metro Indah Megatron",
+    "regency": "Kota Bandung",
+    "district": "Rancasari",
+    "address": "Jl. Soekarno Hatta No. 590 (Depan Kawasan Bisnis MTC)",
+    "roadName": "By-Pass Jl. Soekarno Hatta",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -6.9421,
+      "lng": 107.6622
+    },
+    "type": "Megatron",
+    "dimensions": {
+      "width": 18,
+      "height": 9,
+      "areaM2": 162,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 11,
+    "viewingDistanceM": 280,
+    "dailyGrossReach": 215000,
+    "vacDaily": 182000,
+    "avgDwellTimeSec": 38,
+    "avgSpeedKmh": 35,
+    "trafficBreakdown": {
+      "motorcycles": 68,
+      "privateCars": 22,
+      "publicTransport": 4,
+      "commercialTrucks": 6
+    },
+    "visibilityScore": 91,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 87,
+    "occupancyStatus": "Available",
+    "ratePerMonthIdr": 95000000,
+    "cpmIdr": 14700,
+    "lightingType": "P8 Outdoor High-Res Videotron",
+    "powerConsumptionKw": 16,
+    "facingDirection": "Arus By-Pass Kiaracondong menuju Cibiru & Cileunyi",
+    "targetDemographics": "Komuter Bandung Timur, Pengguna Jalur Antarkota, Pekerja Kawasan Bisnis",
+    "traffic_density": 67,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 215000,
+        "vac": 182000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 202100,
+        "vac": 171080,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 215000,
+        "vac": 182000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 247250,
+        "vac": 209300,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 247250,
+        "vac": 209300,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 268750,
+        "vac": 227500,
+        "trafficIndex": 125,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 268750,
+        "vac": 227500,
+        "trafficIndex": 125,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 215000,
+        "vac": 182000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 215000,
+        "vac": 182000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 215000,
+        "vac": 182000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 215000,
+        "vac": 182000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 275200,
+        "vac": 232960,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-09",
+    "code": "JBR-BKS-001",
+    "name": "Flyover Summarecon Bekasi Iconic Videotron",
+    "regency": "Kota Bekasi",
+    "district": "Bekasi Utara",
+    "address": "Jl. Jendral Ahmad Yani - Flyover KH Noer Ali Summarecon",
+    "roadName": "Jl. Jend. Ahmad Yani",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -6.2285,
+      "lng": 106.9992
+    },
+    "type": "LED Videotron",
+    "dimensions": {
+      "width": 25,
+      "height": 10,
+      "areaM2": 250,
+      "sides": 1
+    },
+    "orientation": "Curved Corner (Sudut Simpang)",
+    "heightAboveGroundM": 10,
+    "viewingDistanceM": 320,
+    "dailyGrossReach": 310000,
+    "vacDaily": 285000,
+    "avgDwellTimeSec": 62,
+    "avgSpeedKmh": 18,
+    "trafficBreakdown": {
+      "motorcycles": 55,
+      "privateCars": 38,
+      "publicTransport": 5,
+      "commercialTrucks": 2
+    },
+    "visibilityScore": 98,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 97,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Hyundai IONIQ 5 Electric",
+    "ratePerMonthIdr": 210000000,
+    "cpmIdr": 22500,
+    "lightingType": "P6 Ultra Dynamic Curve Display",
+    "powerConsumptionKw": 24,
+    "facingDirection": "Keluar Pintu Tol Bekasi Barat menuju Summarecon & Harapan Baru",
+    "targetDemographics": "Keluarga Mapan, Executive Jabodetabek, Automotive Buyers",
+    "traffic_density": 95,
+    "avgFrequency": 3.8,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 310000,
+        "vac": 285000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 291400,
+        "vac": 267900,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 310000,
+        "vac": 285000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 356500,
+        "vac": 327750,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 356500,
+        "vac": 327750,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 334800,
+        "vac": 307800,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 334800,
+        "vac": 307800,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 310000,
+        "vac": 285000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 310000,
+        "vac": 285000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 310000,
+        "vac": 285000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 310000,
+        "vac": 285000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 396800,
+        "vac": 364800,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-10",
+    "code": "JBR-BKS-002",
+    "name": "Tol Jakarta - Cikampek KM 14 Gantry Megatron",
+    "regency": "Kota Bekasi",
+    "district": "Bekasi Barat",
+    "address": "Ruas Jalan Tol Jakarta-Cikampek KM 14+200",
+    "roadName": "Jalan Tol Jakarta - Cikampek",
+    "roadType": "Jalan Tol Bebas Hambatan",
+    "coordinates": {
+      "lat": -6.252,
+      "lng": 106.984
+    },
+    "type": "Megatron",
+    "dimensions": {
+      "width": 30,
+      "height": 12,
+      "areaM2": 360,
+      "sides": 2
+    },
+    "orientation": "Cantilever Overhead",
+    "heightAboveGroundM": 14,
+    "viewingDistanceM": 500,
+    "dailyGrossReach": 430000,
+    "vacDaily": 395000,
+    "avgDwellTimeSec": 22,
+    "avgSpeedKmh": 65,
+    "trafficBreakdown": {
+      "motorcycles": 0,
+      "privateCars": 70,
+      "publicTransport": 8,
+      "commercialTrucks": 22
+    },
+    "visibilityScore": 99,
+    "clutterLevel": "Rendah (Unobstructed)",
+    "effectivenessScore": 95,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Pertamax Green 95 Energy",
+    "ratePerMonthIdr": 275000000,
+    "cpmIdr": 21300,
+    "lightingType": "P10 Highway Rugged LED Display",
+    "powerConsumptionKw": 32,
+    "facingDirection": "Dua arah Tol Japek: Arah Cikampek/Jawa & Arah Cawang/Jakarta",
+    "targetDemographics": "Pebisnis Tol Trans Jawa, Logistik Nasional, Turis Liburan",
+    "traffic_density": 59,
+    "avgFrequency": 3.8,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 430000,
+        "vac": 395000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 404200,
+        "vac": 371300,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 430000,
+        "vac": 395000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 610600,
+        "vac": 560900,
+        "trafficIndex": 142,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 610600,
+        "vac": 560900,
+        "trafficIndex": 142,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 464400,
+        "vac": 426600,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 464400,
+        "vac": 426600,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 430000,
+        "vac": 395000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 430000,
+        "vac": 395000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 430000,
+        "vac": 395000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 430000,
+        "vac": 395000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 550400,
+        "vac": 505600,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-11",
+    "code": "JBR-BKS-003",
+    "name": "Kalimalang Metropolitan Mall JPO Display",
+    "regency": "Kota Bekasi",
+    "district": "Bekasi Selatan",
+    "address": "Jl. KH. Noer Ali (Kalimalang) Simpang MM Mall",
+    "roadName": "Jl. KH. Noer Ali (Kalimalang)",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -6.2483,
+      "lng": 106.9922
+    },
+    "type": "JPO Pedestrian Bridge",
+    "dimensions": {
+      "width": 22,
+      "height": 4.5,
+      "areaM2": 99,
+      "sides": 2
+    },
+    "orientation": "Cantilever Overhead",
+    "heightAboveGroundM": 5.8,
+    "viewingDistanceM": 200,
+    "dailyGrossReach": 225000,
+    "vacDaily": 195000,
+    "avgDwellTimeSec": 44,
+    "avgSpeedKmh": 20,
+    "trafficBreakdown": {
+      "motorcycles": 66,
+      "privateCars": 28,
+      "publicTransport": 5,
+      "commercialTrucks": 1
+    },
+    "visibilityScore": 92,
+    "clutterLevel": "Tinggi (Kompetitif)",
+    "effectivenessScore": 89,
+    "occupancyStatus": "Available",
+    "ratePerMonthIdr": 88000000,
+    "cpmIdr": 13000,
+    "lightingType": "Backlight LED Module 960W Total",
+    "powerConsumptionKw": 2.4,
+    "facingDirection": "Arus Becakayu & Kalimalang menuju Tol Bekasi Barat",
+    "targetDemographics": "Pekerja Komuter Jakarta-Bekasi, Pengunjung Mall",
+    "traffic_density": 81,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 225000,
+        "vac": 195000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 211500,
+        "vac": 183300,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 225000,
+        "vac": 195000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 258750,
+        "vac": 224250,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 258750,
+        "vac": 224250,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 243000,
+        "vac": 210600,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 243000,
+        "vac": 210600,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 225000,
+        "vac": 195000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 225000,
+        "vac": 195000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 225000,
+        "vac": 195000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 225000,
+        "vac": 195000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 288000,
+        "vac": 249600,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-12",
+    "code": "JBR-BKS-004",
+    "name": "Boulevard Harapan Indah Gateway Billboard",
+    "regency": "Kota Bekasi",
+    "district": "Medan Satria",
+    "address": "Bundaran Gerbang Utama Kota Harapan Indah",
+    "roadName": "Jl. Boulevard Harapan Indah",
+    "roadType": "Kolektor Perkotaan",
+    "coordinates": {
+      "lat": -6.184,
+      "lng": 106.9772
+    },
+    "type": "Static Billboard",
+    "dimensions": {
+      "width": 14,
+      "height": 7,
+      "areaM2": 98,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 9,
+    "viewingDistanceM": 240,
+    "dailyGrossReach": 155000,
+    "vacDaily": 132000,
+    "avgDwellTimeSec": 35,
+    "avgSpeedKmh": 25,
+    "trafficBreakdown": {
+      "motorcycles": 58,
+      "privateCars": 38,
+      "publicTransport": 3,
+      "commercialTrucks": 1
+    },
+    "visibilityScore": 88,
+    "clutterLevel": "Rendah (Unobstructed)",
+    "effectivenessScore": 85,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Mayora Kopi Kenangan",
+    "ratePerMonthIdr": 58000000,
+    "cpmIdr": 12500,
+    "lightingType": "Spotlight LED Lumileds 6x200W",
+    "powerConsumptionKw": 1.8,
+    "facingDirection": "Pintu Gerbang Harapan Indah dari Jl. Raya Sultan Agung",
+    "targetDemographics": "Keluarga Residensial Modern, Konsumen FMCG",
+    "traffic_density": 61,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 155000,
+        "vac": 132000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 145700,
+        "vac": 124080,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 155000,
+        "vac": 132000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 178250,
+        "vac": 151800,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 178250,
+        "vac": 151800,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 167400,
+        "vac": 142560,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 167400,
+        "vac": 142560,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 155000,
+        "vac": 132000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 155000,
+        "vac": 132000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 155000,
+        "vac": 132000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 155000,
+        "vac": 132000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 198400,
+        "vac": 168960,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-13",
+    "code": "JBR-BGR-001",
+    "name": "Tugu Kujang Baranangsiang Iconic Landmark LED",
+    "regency": "Kota Bogor",
+    "district": "Bogor Tengah",
+    "address": "Simpang Tugu Kujang - Jl. Pajajaran / Jl. Otto Iskandardinata",
+    "roadName": "Jl. Pajajaran (Simpang Tugu Kujang)",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -6.6015,
+      "lng": 106.8049
+    },
+    "type": "LED Videotron",
+    "dimensions": {
+      "width": 18,
+      "height": 9,
+      "areaM2": 162,
+      "sides": 1
+    },
+    "orientation": "Curved Corner (Sudut Simpang)",
+    "heightAboveGroundM": 8,
+    "viewingDistanceM": 250,
+    "dailyGrossReach": 240000,
+    "vacDaily": 215000,
+    "avgDwellTimeSec": 54,
+    "avgSpeedKmh": 15,
+    "trafficBreakdown": {
+      "motorcycles": 62,
+      "privateCars": 28,
+      "publicTransport": 9,
+      "commercialTrucks": 1
+    },
+    "visibilityScore": 97,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 95,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Bank Mandiri Livin",
+    "ratePerMonthIdr": 145000000,
+    "cpmIdr": 20100,
+    "lightingType": "P6 SMD LED Vivid 7000 nits",
+    "powerConsumptionKw": 15,
+    "facingDirection": "Keluar Terminal Baranangsiang & Tol Jagorawi arah Istana Bogor",
+    "targetDemographics": "Wisatawan Kebun Raya, Komuter Kereta/Tol, Mahasiswa IPB",
+    "traffic_density": 93,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 240000,
+        "vac": 215000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 225600,
+        "vac": 202100,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 240000,
+        "vac": 215000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 276000,
+        "vac": 247250,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 276000,
+        "vac": 247250,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 300000,
+        "vac": 268750,
+        "trafficIndex": 125,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 300000,
+        "vac": 268750,
+        "trafficIndex": 125,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 240000,
+        "vac": 215000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 240000,
+        "vac": 215000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 240000,
+        "vac": 215000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 240000,
+        "vac": 215000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 307200,
+        "vac": 275200,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-14",
+    "code": "JBR-BGR-002",
+    "name": "Ciawi Exit Tol Jagorawi Pintu Masuk Puncak",
+    "regency": "Kabupaten Bogor",
+    "district": "Ciawi",
+    "address": "Simpang Ciawi Simpang Gadog KM 45",
+    "roadName": "Jl. Raya Ciawi - Puncak",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -6.6631,
+      "lng": 106.8574
+    },
+    "type": "Megatron",
+    "dimensions": {
+      "width": 22,
+      "height": 10,
+      "areaM2": 220,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 11,
+    "viewingDistanceM": 380,
+    "dailyGrossReach": 260000,
+    "vacDaily": 232000,
+    "avgDwellTimeSec": 72,
+    "avgSpeedKmh": 10,
+    "trafficBreakdown": {
+      "motorcycles": 50,
+      "privateCars": 44,
+      "publicTransport": 4,
+      "commercialTrucks": 2
+    },
+    "visibilityScore": 95,
+    "clutterLevel": "Tinggi (Kompetitif)",
+    "effectivenessScore": 94,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Teh Botol Sosro Nusantara",
+    "ratePerMonthIdr": 155000000,
+    "cpmIdr": 19800,
+    "lightingType": "P8 Outdoor Anti-Fog Videotron",
+    "powerConsumptionKw": 20,
+    "facingDirection": "Kendaraan dari Exit Tol Jagorawi Ciawi mendaki jalur Puncak",
+    "targetDemographics": "Wisatawan Akhir Pekan Jabodetabek, Turis Keluarga, Kuliner",
+    "traffic_density": 99,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 260000,
+        "vac": 232000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 244400,
+        "vac": 218080,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 260000,
+        "vac": 232000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 299000,
+        "vac": 266800,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 299000,
+        "vac": 266800,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 325000,
+        "vac": 290000,
+        "trafficIndex": 125,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 325000,
+        "vac": 290000,
+        "trafficIndex": 125,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 260000,
+        "vac": 232000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 260000,
+        "vac": 232000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 260000,
+        "vac": 232000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 260000,
+        "vac": 232000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 332800,
+        "vac": 296960,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-15",
+    "code": "JBR-BGR-003",
+    "name": "Botani Square Pajajaran Premium Billboard",
+    "regency": "Kota Bogor",
+    "district": "Bogor Timur",
+    "address": "Jl. Pajajaran Dekat Akses Botani Square Mall & IPB Baranangsiang",
+    "roadName": "Jl. Raya Pajajaran",
+    "roadType": "Kawasan Komersial & Pusat Bisnis",
+    "coordinates": {
+      "lat": -6.5982,
+      "lng": 106.8088
+    },
+    "type": "Static Billboard",
+    "dimensions": {
+      "width": 14,
+      "height": 7,
+      "areaM2": 98,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 9.5,
+    "viewingDistanceM": 190,
+    "dailyGrossReach": 172000,
+    "vacDaily": 148000,
+    "avgDwellTimeSec": 38,
+    "avgSpeedKmh": 20,
+    "trafficBreakdown": {
+      "motorcycles": 55,
+      "privateCars": 38,
+      "publicTransport": 6,
+      "commercialTrucks": 1
+    },
+    "visibilityScore": 91,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 88,
+    "occupancyStatus": "Available",
+    "ratePerMonthIdr": 68000000,
+    "cpmIdr": 13200,
+    "lightingType": "Metal Halide Floodlight 6x400W",
+    "powerConsumptionKw": 2.6,
+    "facingDirection": "Arus Pajajaran dari Warung Jambu menuju Sukasari",
+    "targetDemographics": "Mall Visitors, Akademisi IPB, Komunitas Kafe Pajajaran",
+    "traffic_density": 68,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 172000,
+        "vac": 148000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 161680,
+        "vac": 139120,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 172000,
+        "vac": 148000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 197800,
+        "vac": 170200,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 197800,
+        "vac": 170200,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 215000,
+        "vac": 185000,
+        "trafficIndex": 125,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 215000,
+        "vac": 185000,
+        "trafficIndex": 125,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 172000,
+        "vac": 148000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 172000,
+        "vac": 148000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 172000,
+        "vac": 148000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 172000,
+        "vac": 148000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 220160,
+        "vac": 189440,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-16",
+    "code": "JBR-BGR-004",
+    "name": "Sholeh Iskandar Flyover Yasmin JPO",
+    "regency": "Kota Bogor",
+    "district": "Tanah Sareal",
+    "address": "Jl. KH. R. Abdullah Bin Nuh (Taman Yasmin)",
+    "roadName": "Jl. Sholeh Iskandar (BORR Outer Ring Road)",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -6.5562,
+      "lng": 106.7794
+    },
+    "type": "JPO Pedestrian Bridge",
+    "dimensions": {
+      "width": 24,
+      "height": 4,
+      "areaM2": 96,
+      "sides": 2
+    },
+    "orientation": "Cantilever Overhead",
+    "heightAboveGroundM": 5.6,
+    "viewingDistanceM": 260,
+    "dailyGrossReach": 198000,
+    "vacDaily": 174000,
+    "avgDwellTimeSec": 30,
+    "avgSpeedKmh": 35,
+    "trafficBreakdown": {
+      "motorcycles": 64,
+      "privateCars": 30,
+      "publicTransport": 4,
+      "commercialTrucks": 2
+    },
+    "visibilityScore": 90,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 86,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Daihatsu Sahabat Petualang",
+    "ratePerMonthIdr": 72000000,
+    "cpmIdr": 12100,
+    "lightingType": "Backlite LED Uniform Strip",
+    "powerConsumptionKw": 2.2,
+    "facingDirection": "Arus Parung-Bogor & Akses Tol BORR Sentul",
+    "targetDemographics": "Penglaju Parung/Bogor Barat, Pengguna Tol BORR",
+    "traffic_density": 59,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 198000,
+        "vac": 174000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 186120,
+        "vac": 163560,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 198000,
+        "vac": 174000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 227700,
+        "vac": 200100,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 227700,
+        "vac": 200100,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 247500,
+        "vac": 217500,
+        "trafficIndex": 125,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 247500,
+        "vac": 217500,
+        "trafficIndex": 125,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 198000,
+        "vac": 174000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 198000,
+        "vac": 174000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 198000,
+        "vac": 174000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 198000,
+        "vac": 174000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 253440,
+        "vac": 222720,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-17",
+    "code": "JBR-DPK-001",
+    "name": "Margonda Raya Margo City LED Spectacular",
+    "regency": "Kota Depok",
+    "district": "Beji",
+    "address": "Jl. Margonda Raya No. 358 (Depan Margo City & Detos)",
+    "roadName": "Jl. Margonda Raya",
+    "roadType": "Kawasan Komersial & Pusat Bisnis",
+    "coordinates": {
+      "lat": -6.3725,
+      "lng": 106.8322
+    },
+    "type": "LED Videotron",
+    "dimensions": {
+      "width": 20,
+      "height": 10,
+      "areaM2": 200,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 8,
+    "viewingDistanceM": 240,
+    "dailyGrossReach": 265000,
+    "vacDaily": 238000,
+    "avgDwellTimeSec": 58,
+    "avgSpeedKmh": 12,
+    "trafficBreakdown": {
+      "motorcycles": 68,
+      "privateCars": 24,
+      "publicTransport": 7,
+      "commercialTrucks": 1
+    },
+    "visibilityScore": 96,
+    "clutterLevel": "Tinggi (Kompetitif)",
+    "effectivenessScore": 92,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Gopay Pinjam Finansial",
+    "ratePerMonthIdr": 150000000,
+    "cpmIdr": 18900,
+    "lightingType": "P6 Ultra Vibrant LED 6800 nits",
+    "powerConsumptionKw": 16.5,
+    "facingDirection": "Arus Jakarta/Pasar Minggu menuju Balai Kota Depok & Sawangan",
+    "targetDemographics": "Mahasiswa UI, Gunadarma, Komuter KRL & Mall Shoppers",
+    "traffic_density": 99,
+    "avgFrequency": 3.8,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 265000,
+        "vac": 238000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 249100,
+        "vac": 223720,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 265000,
+        "vac": 238000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 304750,
+        "vac": 273700,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 304750,
+        "vac": 273700,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 286200,
+        "vac": 257040,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 286200,
+        "vac": 257040,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 265000,
+        "vac": 238000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 265000,
+        "vac": 238000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 265000,
+        "vac": 238000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 265000,
+        "vac": 238000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 339200,
+        "vac": 304640,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-18",
+    "code": "JBR-DPK-002",
+    "name": "Jl. Ir. H. Juanda Simpang Margonda Billboard",
+    "regency": "Kota Depok",
+    "district": "Sukmajaya",
+    "address": "Jl. Ir. H. Juanda (Akses Tol Cijago KM 1.2)",
+    "roadName": "Jl. Ir. H. Juanda",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -6.3842,
+      "lng": 106.8405
+    },
+    "type": "Static Billboard",
+    "dimensions": {
+      "width": 16,
+      "height": 8,
+      "areaM2": 128,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 10,
+    "viewingDistanceM": 280,
+    "dailyGrossReach": 182000,
+    "vacDaily": 154000,
+    "avgDwellTimeSec": 40,
+    "avgSpeedKmh": 30,
+    "trafficBreakdown": {
+      "motorcycles": 60,
+      "privateCars": 34,
+      "publicTransport": 4,
+      "commercialTrucks": 2
+    },
+    "visibilityScore": 92,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 87,
+    "occupancyStatus": "Available",
+    "ratePerMonthIdr": 68000000,
+    "cpmIdr": 12400,
+    "lightingType": "LED Floodlight 8x250W",
+    "powerConsumptionKw": 2,
+    "facingDirection": "Keluar Gerbang Tol Kukusan/Cijago menuju Jl. Raya Bogor",
+    "targetDemographics": "Pengguna Tol Cinere-Jagorawi, Residensial Depok Timur",
+    "traffic_density": 66,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 182000,
+        "vac": 154000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 171080,
+        "vac": 144760,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 182000,
+        "vac": 154000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 209300,
+        "vac": 177100,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 209300,
+        "vac": 177100,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 196560,
+        "vac": 166320,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 196560,
+        "vac": 166320,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 182000,
+        "vac": 154000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 182000,
+        "vac": 154000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 182000,
+        "vac": 154000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 182000,
+        "vac": 154000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 232960,
+        "vac": 197120,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-19",
+    "code": "JBR-CRB-001",
+    "name": "Kartini CSB Mall Curved Videotron",
+    "regency": "Kota Cirebon",
+    "district": "Kesambi",
+    "address": "Jl. Dr. Cipto Mangunkusumo - Simpang CSB Mall",
+    "roadName": "Jl. Dr. Cipto Mangunkusumo",
+    "roadType": "Kawasan Komersial & Pusat Bisnis",
+    "coordinates": {
+      "lat": -6.7214,
+      "lng": 108.5492
+    },
+    "type": "LED Videotron",
+    "dimensions": {
+      "width": 16,
+      "height": 8,
+      "areaM2": 128,
+      "sides": 1
+    },
+    "orientation": "Curved Corner (Sudut Simpang)",
+    "heightAboveGroundM": 7.5,
+    "viewingDistanceM": 180,
+    "dailyGrossReach": 155000,
+    "vacDaily": 135000,
+    "avgDwellTimeSec": 50,
+    "avgSpeedKmh": 16,
+    "trafficBreakdown": {
+      "motorcycles": 62,
+      "privateCars": 30,
+      "publicTransport": 6,
+      "commercialTrucks": 2
+    },
+    "visibilityScore": 94,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 91,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Djarum Super Kretek",
+    "ratePerMonthIdr": 85000000,
+    "cpmIdr": 18300,
+    "lightingType": "P6 SMD LED HD Display",
+    "powerConsumptionKw": 11,
+    "facingDirection": "Arus simpang Cipto menuju Kartini & Grage Mall",
+    "targetDemographics": "Masyarakat Pantura, Pebisnis Cirebon-Kuningan, Mall Goers",
+    "traffic_density": 75,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 155000,
+        "vac": 135000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 145700,
+        "vac": 126900,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 155000,
+        "vac": 135000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 178250,
+        "vac": 155250,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 178250,
+        "vac": 155250,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 167400,
+        "vac": 145800,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 167400,
+        "vac": 145800,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 155000,
+        "vac": 135000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 155000,
+        "vac": 135000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 155000,
+        "vac": 135000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 155000,
+        "vac": 135000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 198400,
+        "vac": 172800,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-20",
+    "code": "JBR-CRB-002",
+    "name": "Tuparev Arteri Cirebon-Kedawung Billboard",
+    "regency": "Kabupaten Cirebon",
+    "district": "Kedawung",
+    "address": "Jl. Tuparev No. 88 (Pusat Kuliner Empal Gentong & Hotel)",
+    "roadName": "Jl. Raya Tuparev",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -6.7163,
+      "lng": 108.534
+    },
+    "type": "Static Billboard",
+    "dimensions": {
+      "width": 12,
+      "height": 6,
+      "areaM2": 72,
+      "sides": 2
+    },
+    "orientation": "Double Sided (Dua Sisi)",
+    "heightAboveGroundM": 9,
+    "viewingDistanceM": 200,
+    "dailyGrossReach": 128000,
+    "vacDaily": 105000,
+    "avgDwellTimeSec": 36,
+    "avgSpeedKmh": 24,
+    "trafficBreakdown": {
+      "motorcycles": 65,
+      "privateCars": 27,
+      "publicTransport": 6,
+      "commercialTrucks": 2
+    },
+    "visibilityScore": 89,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 84,
+    "occupancyStatus": "Available",
+    "ratePerMonthIdr": 42000000,
+    "cpmIdr": 10900,
+    "lightingType": "Frontlite Spotlight LED 6x200W",
+    "powerConsumptionKw": 1.6,
+    "facingDirection": "Dua arah: Kota Cirebon ke Kedawung & Exit Tol Plumbon",
+    "targetDemographics": "Wisatawan Kuliner, Tamu Hotel Tuparev, Komuter Lokal",
+    "traffic_density": 57,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 128000,
+        "vac": 105000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 120320,
+        "vac": 98700,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 128000,
+        "vac": 105000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 147200,
+        "vac": 120750,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 147200,
+        "vac": 120750,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 138240,
+        "vac": 113400,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 138240,
+        "vac": 113400,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 128000,
+        "vac": 105000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 128000,
+        "vac": 105000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 128000,
+        "vac": 105000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 128000,
+        "vac": 105000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 163840,
+        "vac": 134400,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-21",
+    "code": "JBR-CRB-003",
+    "name": "Tol Palimanan - Kanci KM 208 Gantry Megatron",
+    "regency": "Kabupaten Cirebon",
+    "district": "Astanajapura",
+    "address": "Ruas Tol Palikanci KM 208+400",
+    "roadName": "Jalan Tol Palimanan - Kanci",
+    "roadType": "Jalan Tol Bebas Hambatan",
+    "coordinates": {
+      "lat": -6.7725,
+      "lng": 108.618
+    },
+    "type": "Megatron",
+    "dimensions": {
+      "width": 24,
+      "height": 10,
+      "areaM2": 240,
+      "sides": 2
+    },
+    "orientation": "Cantilever Overhead",
+    "heightAboveGroundM": 13,
+    "viewingDistanceM": 450,
+    "dailyGrossReach": 240000,
+    "vacDaily": 216000,
+    "avgDwellTimeSec": 20,
+    "avgSpeedKmh": 75,
+    "trafficBreakdown": {
+      "motorcycles": 0,
+      "privateCars": 60,
+      "publicTransport": 10,
+      "commercialTrucks": 30
+    },
+    "visibilityScore": 97,
+    "clutterLevel": "Rendah (Unobstructed)",
+    "effectivenessScore": 90,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Oppo Reno Series 5G",
+    "ratePerMonthIdr": 125000000,
+    "cpmIdr": 17400,
+    "lightingType": "P10 Rugged Weatherproof LED",
+    "powerConsumptionKw": 22,
+    "facingDirection": "Arah Jakarta ke Jawa Tengah / Surabaya & Arah Sebaliknya",
+    "targetDemographics": "Pemudik & Pelintas Trans Jawa, Armada Ekspedisi, Wisatawan",
+    "traffic_density": 54,
+    "avgFrequency": 3.8,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 240000,
+        "vac": 216000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 225600,
+        "vac": 203040,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 240000,
+        "vac": 216000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 340800,
+        "vac": 306720,
+        "trafficIndex": 142,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 340800,
+        "vac": 306720,
+        "trafficIndex": 142,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 259200,
+        "vac": 233280,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 259200,
+        "vac": 233280,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 240000,
+        "vac": 216000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 240000,
+        "vac": 216000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 240000,
+        "vac": 216000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 240000,
+        "vac": 216000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 307200,
+        "vac": 276480,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-22",
+    "code": "JBR-KRW-001",
+    "name": "Tol Jakarta-Cikampek KM 54 Karawang Timur Megatron",
+    "regency": "Kabupaten Karawang",
+    "district": "Klari",
+    "address": "Rest Area KM 57 / KM 54 Akses Industri",
+    "roadName": "Jalan Tol Jakarta - Cikampek",
+    "roadType": "Jalan Tol Bebas Hambatan",
+    "coordinates": {
+      "lat": -6.3685,
+      "lng": 107.3512
+    },
+    "type": "Megatron",
+    "dimensions": {
+      "width": 28,
+      "height": 12,
+      "areaM2": 336,
+      "sides": 2
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 14,
+    "viewingDistanceM": 480,
+    "dailyGrossReach": 360000,
+    "vacDaily": 325000,
+    "avgDwellTimeSec": 25,
+    "avgSpeedKmh": 60,
+    "trafficBreakdown": {
+      "motorcycles": 0,
+      "privateCars": 58,
+      "publicTransport": 12,
+      "commercialTrucks": 30
+    },
+    "visibilityScore": 98,
+    "clutterLevel": "Rendah (Unobstructed)",
+    "effectivenessScore": 94,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Toyota Innova Zenix Hybrid",
+    "ratePerMonthIdr": 185000000,
+    "cpmIdr": 17100,
+    "lightingType": "P10 High-Luminance Highway Board",
+    "powerConsumptionKw": 28,
+    "facingDirection": "Arus Tol Japek arah Cikampek / Tol Cipali & Purbaleunyi",
+    "targetDemographics": "Pebisnis Industri Karawang, Wisatawan Lintas Jawa",
+    "traffic_density": 61,
+    "avgFrequency": 3.8,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 360000,
+        "vac": 325000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 338400,
+        "vac": 305500,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 360000,
+        "vac": 325000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 511200,
+        "vac": 461500,
+        "trafficIndex": 142,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 511200,
+        "vac": 461500,
+        "trafficIndex": 142,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 388800,
+        "vac": 351000,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 388800,
+        "vac": 351000,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 360000,
+        "vac": 325000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 360000,
+        "vac": 325000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 360000,
+        "vac": 325000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 360000,
+        "vac": 325000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 460800,
+        "vac": 416000,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-23",
+    "code": "JBR-KRW-002",
+    "name": "Bundaran Badami Karawang Barat Videotron",
+    "regency": "Kabupaten Karawang",
+    "district": "Telukjambe Timur",
+    "address": "Jl. Interchange Tol Karawang Barat (Kawasan KIIC)",
+    "roadName": "Jl. Interchange Karawang Barat",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -6.3328,
+      "lng": 107.2842
+    },
+    "type": "LED Videotron",
+    "dimensions": {
+      "width": 16,
+      "height": 8,
+      "areaM2": 128,
+      "sides": 1
+    },
+    "orientation": "Curved Corner (Sudut Simpang)",
+    "heightAboveGroundM": 8,
+    "viewingDistanceM": 220,
+    "dailyGrossReach": 175000,
+    "vacDaily": 152000,
+    "avgDwellTimeSec": 52,
+    "avgSpeedKmh": 18,
+    "trafficBreakdown": {
+      "motorcycles": 58,
+      "privateCars": 32,
+      "publicTransport": 4,
+      "commercialTrucks": 6
+    },
+    "visibilityScore": 93,
+    "clutterLevel": "Rendah (Unobstructed)",
+    "effectivenessScore": 90,
+    "occupancyStatus": "Available",
+    "ratePerMonthIdr": 92000000,
+    "cpmIdr": 17500,
+    "lightingType": "P6 Outdoor IP65 Certified LED",
+    "powerConsumptionKw": 13,
+    "facingDirection": "Keluar Tol Karawang Barat menuju Kawasan Industri KIIC & Sedana",
+    "targetDemographics": "Ekspatriat Industri Jepang/Korea, Direksi Pabrik, Pekerja Manufaktur",
+    "traffic_density": 79,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 175000,
+        "vac": 152000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 164500,
+        "vac": 142880,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 175000,
+        "vac": 152000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 201250,
+        "vac": 174800,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 201250,
+        "vac": 174800,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 189000,
+        "vac": 164160,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 189000,
+        "vac": 164160,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 175000,
+        "vac": 152000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 175000,
+        "vac": 152000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 175000,
+        "vac": 152000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 175000,
+        "vac": 152000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 224000,
+        "vac": 194560,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-24",
+    "code": "JBR-TSM-001",
+    "name": "Jl. HZ Mustofa Pusat Bisnis Videotron",
+    "regency": "Kota Tasikmalaya",
+    "district": "Cihideung",
+    "address": "Jl. HZ. Mustofa No. 115 (Pusat Retail & Perbankan)",
+    "roadName": "Jl. HZ. Mustofa",
+    "roadType": "Kawasan Komersial & Pusat Bisnis",
+    "coordinates": {
+      "lat": -7.3315,
+      "lng": 108.2198
+    },
+    "type": "LED Videotron",
+    "dimensions": {
+      "width": 14,
+      "height": 7,
+      "areaM2": 98,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 7,
+    "viewingDistanceM": 160,
+    "dailyGrossReach": 135000,
+    "vacDaily": 118000,
+    "avgDwellTimeSec": 46,
+    "avgSpeedKmh": 15,
+    "trafficBreakdown": {
+      "motorcycles": 70,
+      "privateCars": 22,
+      "publicTransport": 7,
+      "commercialTrucks": 1
+    },
+    "visibilityScore": 92,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 88,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Yamaha NMAX Turbo",
+    "ratePerMonthIdr": 65000000,
+    "cpmIdr": 16000,
+    "lightingType": "P6 SMD LED Crisp Display",
+    "powerConsumptionKw": 10,
+    "facingDirection": "Arus utama pusat pertokoan HZ Mustofa arah Simpang Padayungan",
+    "targetDemographics": "Konsumen Priangan Timur, Pelaku UMKM Bordir/Batik, Keluarga",
+    "traffic_density": 70,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 135000,
+        "vac": 118000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 126900,
+        "vac": 110920,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 135000,
+        "vac": 118000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 155250,
+        "vac": 135700,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 155250,
+        "vac": 135700,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 145800,
+        "vac": 127440,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 145800,
+        "vac": 127440,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 135000,
+        "vac": 118000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 135000,
+        "vac": 118000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 135000,
+        "vac": 118000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 135000,
+        "vac": 118000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 172800,
+        "vac": 151040,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-25",
+    "code": "JBR-TSM-002",
+    "name": "Simpang Lima Tasikmalaya Megatron Arteri",
+    "regency": "Kota Tasikmalaya",
+    "district": "Cipedes",
+    "address": "Simpang Lima (Pertemuan Jl. Djuanda, RE Martadinata, Mitrabatik)",
+    "roadName": "Simpang Lima Tasikmalaya",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -7.3192,
+      "lng": 108.2235
+    },
+    "type": "Static Billboard",
+    "dimensions": {
+      "width": 16,
+      "height": 8,
+      "areaM2": 128,
+      "sides": 1
+    },
+    "orientation": "Curved Corner (Sudut Simpang)",
+    "heightAboveGroundM": 9.5,
+    "viewingDistanceM": 220,
+    "dailyGrossReach": 148000,
+    "vacDaily": 122000,
+    "avgDwellTimeSec": 55,
+    "avgSpeedKmh": 14,
+    "trafficBreakdown": {
+      "motorcycles": 68,
+      "privateCars": 24,
+      "publicTransport": 6,
+      "commercialTrucks": 2
+    },
+    "visibilityScore": 91,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 86,
+    "occupancyStatus": "Available",
+    "ratePerMonthIdr": 45000000,
+    "cpmIdr": 10100,
+    "lightingType": "High-Power LED Floodlights 6x300W",
+    "powerConsumptionKw": 2,
+    "facingDirection": "Pertemuan arus dari arah Bandung/Ciawi & Ciamis/Pangandaran",
+    "targetDemographics": "Pelintas Jalur Selatan Jabar, Warga Kota Tasikmalaya",
+    "traffic_density": 78,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 148000,
+        "vac": 122000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 139120,
+        "vac": 114680,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 148000,
+        "vac": 122000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 170200,
+        "vac": 140300,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 170200,
+        "vac": 140300,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 159840,
+        "vac": 131760,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 159840,
+        "vac": 131760,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 148000,
+        "vac": 122000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 148000,
+        "vac": 122000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 148000,
+        "vac": 122000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 148000,
+        "vac": 122000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 189440,
+        "vac": 156160,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-26",
+    "code": "JBR-SKB-001",
+    "name": "Jl. Siliwangi Alun-Alun Sukabumi LED",
+    "regency": "Kota Sukabumi",
+    "district": "Cikole",
+    "address": "Jl. Siliwangi No. 45 (Dekat Lapang Merdeka)",
+    "roadName": "Jl. Siliwangi",
+    "roadType": "Kawasan Komersial & Pusat Bisnis",
+    "coordinates": {
+      "lat": -6.9248,
+      "lng": 106.9284
+    },
+    "type": "LED Videotron",
+    "dimensions": {
+      "width": 12,
+      "height": 6,
+      "areaM2": 72,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 6.5,
+    "viewingDistanceM": 150,
+    "dailyGrossReach": 115000,
+    "vacDaily": 98000,
+    "avgDwellTimeSec": 42,
+    "avgSpeedKmh": 16,
+    "trafficBreakdown": {
+      "motorcycles": 72,
+      "privateCars": 20,
+      "publicTransport": 7,
+      "commercialTrucks": 1
+    },
+    "visibilityScore": 90,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 85,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Aqua Danone Konservasi Jabar",
+    "ratePerMonthIdr": 52000000,
+    "cpmIdr": 15100,
+    "lightingType": "P6 SMD LED Outdoor 6000 nits",
+    "powerConsumptionKw": 8.5,
+    "facingDirection": "Pusat kota Sukabumi arah Salabintana & Balai Kota",
+    "targetDemographics": "Masyarakat Sukabumi Kota, Wisatawan Salabintana",
+    "traffic_density": 63,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 115000,
+        "vac": 98000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 108100,
+        "vac": 92120,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 115000,
+        "vac": 98000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 132250,
+        "vac": 112700,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 132250,
+        "vac": 112700,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 124200,
+        "vac": 105840,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 124200,
+        "vac": 105840,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 115000,
+        "vac": 98000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 115000,
+        "vac": 98000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 115000,
+        "vac": 98000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 115000,
+        "vac": 98000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 147200,
+        "vac": 125440,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-27",
+    "code": "JBR-SKB-002",
+    "name": "Tol Bocimi Exit Cigombong / Parungkuda Billboard",
+    "regency": "Kabupaten Sukabumi",
+    "district": "Cicurug",
+    "address": "Akses Keluar Tol Bocimi Ruas Cigombong - Cibadak",
+    "roadName": "Jalan Tol Bogor-Ciawi-Sukabumi (Bocimi)",
+    "roadType": "Jalan Tol Bebas Hambatan",
+    "coordinates": {
+      "lat": -6.829,
+      "lng": 106.821
+    },
+    "type": "Static Billboard",
+    "dimensions": {
+      "width": 18,
+      "height": 8,
+      "areaM2": 144,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 11,
+    "viewingDistanceM": 320,
+    "dailyGrossReach": 145000,
+    "vacDaily": 126000,
+    "avgDwellTimeSec": 32,
+    "avgSpeedKmh": 50,
+    "trafficBreakdown": {
+      "motorcycles": 0,
+      "privateCars": 68,
+      "publicTransport": 10,
+      "commercialTrucks": 22
+    },
+    "visibilityScore": 94,
+    "clutterLevel": "Rendah (Unobstructed)",
+    "effectivenessScore": 89,
+    "occupancyStatus": "Available",
+    "ratePerMonthIdr": 55000000,
+    "cpmIdr": 12600,
+    "lightingType": "LED Floodlight 6x250W Solar Supported",
+    "powerConsumptionKw": 1.8,
+    "facingDirection": "Kendaraan keluar Tol Bocimi menuju Sukabumi & Pelabuhan Ratu",
+    "targetDemographics": "Wisatawan Geopark Ciletuh, Truk Pabrik Air Minum & Garmen",
+    "traffic_density": 45,
+    "avgFrequency": 3.8,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 145000,
+        "vac": 126000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 136300,
+        "vac": 118440,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 145000,
+        "vac": 126000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 205900,
+        "vac": 178920,
+        "trafficIndex": 142,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 205900,
+        "vac": 178920,
+        "trafficIndex": 142,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 156600,
+        "vac": 136080,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 156600,
+        "vac": 136080,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 145000,
+        "vac": 126000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 145000,
+        "vac": 126000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 145000,
+        "vac": 126000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 145000,
+        "vac": 126000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 185600,
+        "vac": 161280,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-28",
+    "code": "JBR-CMH-001",
+    "name": "Baros Exit Tol Purbaleunyi Cimahi Videotron",
+    "regency": "Kota Cimahi",
+    "district": "Cimahi Tengah",
+    "address": "Jl. HMS Mintaredja SH Simpang Baros",
+    "roadName": "Jl. Baros (Exit Tol Cimahi)",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -6.8925,
+      "lng": 107.5385
+    },
+    "type": "LED Videotron",
+    "dimensions": {
+      "width": 14,
+      "height": 7,
+      "areaM2": 98,
+      "sides": 1
+    },
+    "orientation": "Curved Corner (Sudut Simpang)",
+    "heightAboveGroundM": 8,
+    "viewingDistanceM": 200,
+    "dailyGrossReach": 168000,
+    "vacDaily": 146000,
+    "avgDwellTimeSec": 52,
+    "avgSpeedKmh": 15,
+    "trafficBreakdown": {
+      "motorcycles": 62,
+      "privateCars": 32,
+      "publicTransport": 5,
+      "commercialTrucks": 1
+    },
+    "visibilityScore": 93,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 89,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Wardah Cosmetics Nature",
+    "ratePerMonthIdr": 78000000,
+    "cpmIdr": 15500,
+    "lightingType": "P6 SMD LED Screen",
+    "powerConsumptionKw": 10.5,
+    "facingDirection": "Keluar Exit Tol Baros menuju Alun-alun Cimahi & Padalarang",
+    "targetDemographics": "Pekerja Industri Kreatif Cimahi, Personel Militer, Komuter",
+    "traffic_density": 79,
+    "avgFrequency": 3.8,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 168000,
+        "vac": 146000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 157920,
+        "vac": 137240,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 168000,
+        "vac": 146000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 193200,
+        "vac": 167900,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 193200,
+        "vac": 167900,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 181440,
+        "vac": 157680,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 181440,
+        "vac": 157680,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 168000,
+        "vac": 146000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 168000,
+        "vac": 146000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 168000,
+        "vac": 146000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 168000,
+        "vac": 146000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 215040,
+        "vac": 186880,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-29",
+    "code": "JBR-PWK-001",
+    "name": "Tol Cipularang KM 88 Rest Area Megatron",
+    "regency": "Kabupaten Purwakarta",
+    "district": "Sukatani",
+    "address": "Rest Area Tol Cipularang KM 88+200 Arah Bandung",
+    "roadName": "Jalan Tol Cikampek - Purwakarta - Padalarang (Cipularang)",
+    "roadType": "Jalan Tol Bebas Hambatan",
+    "coordinates": {
+      "lat": -6.643,
+      "lng": 107.411
+    },
+    "type": "Megatron",
+    "dimensions": {
+      "width": 24,
+      "height": 10,
+      "areaM2": 240,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 13,
+    "viewingDistanceM": 420,
+    "dailyGrossReach": 275000,
+    "vacDaily": 248000,
+    "avgDwellTimeSec": 45,
+    "avgSpeedKmh": 40,
+    "trafficBreakdown": {
+      "motorcycles": 0,
+      "privateCars": 76,
+      "publicTransport": 10,
+      "commercialTrucks": 14
+    },
+    "visibilityScore": 97,
+    "clutterLevel": "Rendah (Unobstructed)",
+    "effectivenessScore": 93,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "Kopi Kenangan Rest Area",
+    "ratePerMonthIdr": 140000000,
+    "cpmIdr": 17000,
+    "lightingType": "P10 Weather-Resistant LED",
+    "powerConsumptionKw": 20,
+    "facingDirection": "Memasuki Rest Area KM 88 Arah Bandung & Arus Tol Utama",
+    "targetDemographics": "Wisatawan Jakarta ke Bandung, Keluarga, Pebisnis Komuter",
+    "traffic_density": 76,
+    "avgFrequency": 3.8,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 275000,
+        "vac": 248000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 258500,
+        "vac": 233120,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 275000,
+        "vac": 248000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 390500,
+        "vac": 352160,
+        "trafficIndex": 142,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 390500,
+        "vac": 352160,
+        "trafficIndex": 142,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 297000,
+        "vac": 267840,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 297000,
+        "vac": 267840,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 275000,
+        "vac": 248000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 275000,
+        "vac": 248000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 275000,
+        "vac": 248000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 275000,
+        "vac": 248000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 352000,
+        "vac": 317440,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-30",
+    "code": "JBR-SBG-001",
+    "name": "Tol Cipali KM 92 Subang Gateway Billboard",
+    "regency": "Kabupaten Subang",
+    "district": "Kalijati",
+    "address": "Tol Cikopo - Palimanan KM 92",
+    "roadName": "Jalan Tol Cipali (Trans Jawa)",
+    "roadType": "Jalan Tol Bebas Hambatan",
+    "coordinates": {
+      "lat": -6.495,
+      "lng": 107.674
+    },
+    "type": "Static Billboard",
+    "dimensions": {
+      "width": 20,
+      "height": 8,
+      "areaM2": 160,
+      "sides": 2
+    },
+    "orientation": "Double Sided (Dua Sisi)",
+    "heightAboveGroundM": 12,
+    "viewingDistanceM": 400,
+    "dailyGrossReach": 210000,
+    "vacDaily": 185000,
+    "avgDwellTimeSec": 20,
+    "avgSpeedKmh": 80,
+    "trafficBreakdown": {
+      "motorcycles": 0,
+      "privateCars": 62,
+      "publicTransport": 12,
+      "commercialTrucks": 26
+    },
+    "visibilityScore": 95,
+    "clutterLevel": "Rendah (Unobstructed)",
+    "effectivenessScore": 87,
+    "occupancyStatus": "Available",
+    "ratePerMonthIdr": 75000000,
+    "cpmIdr": 11900,
+    "lightingType": "Solar Powered LED Floodlights 8x150W",
+    "powerConsumptionKw": 1.5,
+    "facingDirection": "Dua arah Tol Cipali: Menuju Cirebon/Jawa & Menuju Jakarta",
+    "targetDemographics": "Pengendara Jarak Jauh Trans Jawa, Sopir Bus & Truk Logistik",
+    "traffic_density": 49,
+    "avgFrequency": 3.8,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 210000,
+        "vac": 185000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 197400,
+        "vac": 173900,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 210000,
+        "vac": 185000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 298200,
+        "vac": 262700,
+        "trafficIndex": 142,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 298200,
+        "vac": 262700,
+        "trafficIndex": 142,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 226800,
+        "vac": 199800,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 226800,
+        "vac": 199800,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 210000,
+        "vac": 185000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 210000,
+        "vac": 185000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 210000,
+        "vac": 185000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 210000,
+        "vac": 185000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 268800,
+        "vac": 236800,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-31",
+    "code": "JBR-SMD-001",
+    "name": "Jatinangor ITB / UNPAD Campus Corridor LED",
+    "regency": "Kabupaten Sumedang",
+    "district": "Jatinangor",
+    "address": "Jl. Raya Bandung-Sumedang KM 21 (Depan Jatos & Kampus)",
+    "roadName": "Jl. Raya Jatinangor",
+    "roadType": "Kawasan Komersial & Pusat Bisnis",
+    "coordinates": {
+      "lat": -6.9315,
+      "lng": 107.7735
+    },
+    "type": "LED Videotron",
+    "dimensions": {
+      "width": 14,
+      "height": 7,
+      "areaM2": 98,
+      "sides": 1
+    },
+    "orientation": "Front Facing (Tegak Lurus)",
+    "heightAboveGroundM": 7,
+    "viewingDistanceM": 170,
+    "dailyGrossReach": 145000,
+    "vacDaily": 128000,
+    "avgDwellTimeSec": 48,
+    "avgSpeedKmh": 14,
+    "trafficBreakdown": {
+      "motorcycles": 74,
+      "privateCars": 18,
+      "publicTransport": 6,
+      "commercialTrucks": 2
+    },
+    "visibilityScore": 92,
+    "clutterLevel": "Sedang (Normal)",
+    "effectivenessScore": 89,
+    "occupancyStatus": "Occupied",
+    "currentBrand": "By.U Telkomsel Anak Muda",
+    "ratePerMonthIdr": 68000000,
+    "cpmIdr": 15600,
+    "lightingType": "P6 Full HD LED Display",
+    "powerConsumptionKw": 9.8,
+    "facingDirection": "Keluar Gerbang Tol Cileunyi/Cisumdawu menuju Kampus Unpad/ITB",
+    "targetDemographics": "Mahasiswa, Civitas Akademika Unpad/ITB/IPDN, Remaja",
+    "traffic_density": 73,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 145000,
+        "vac": 128000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 136300,
+        "vac": 120320,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 145000,
+        "vac": 128000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 166750,
+        "vac": 147200,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 166750,
+        "vac": 147200,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 156600,
+        "vac": 138240,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 156600,
+        "vac": 138240,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 145000,
+        "vac": 128000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 145000,
+        "vac": 128000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 145000,
+        "vac": 128000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 145000,
+        "vac": 128000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 185600,
+        "vac": 163840,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  },
+  {
+    "id": "spot-32",
+    "code": "JBR-GRT-001",
+    "name": "Jl. Cimanuk Simpang Tarogong Garut Billboard",
+    "regency": "Kabupaten Garut",
+    "district": "Tarogong Kidul",
+    "address": "Jl. Cimanuk Simpang Bunderan Tarogong",
+    "roadName": "Jl. Cimanuk",
+    "roadType": "Arteri Primer",
+    "coordinates": {
+      "lat": -7.2185,
+      "lng": 107.892
+    },
+    "type": "Static Billboard",
+    "dimensions": {
+      "width": 14,
+      "height": 7,
+      "areaM2": 98,
+      "sides": 1
+    },
+    "orientation": "Curved Corner (Sudut Simpang)",
+    "heightAboveGroundM": 8.5,
+    "viewingDistanceM": 200,
+    "dailyGrossReach": 118000,
+    "vacDaily": 96000,
+    "avgDwellTimeSec": 45,
+    "avgSpeedKmh": 18,
+    "trafficBreakdown": {
+      "motorcycles": 70,
+      "privateCars": 22,
+      "publicTransport": 6,
+      "commercialTrucks": 2
+    },
+    "visibilityScore": 89,
+    "clutterLevel": "Rendah (Unobstructed)",
+    "effectivenessScore": 84,
+    "occupancyStatus": "Available",
+    "ratePerMonthIdr": 38000000,
+    "cpmIdr": 10700,
+    "lightingType": "LED Spotlight 6x200W",
+    "powerConsumptionKw": 1.6,
+    "facingDirection": "Pintu masuk kota Garut dari arah Kadungora/Bandung",
+    "targetDemographics": "Wisatawan Cipanas Garut, Penikmat Dodol, Warga Priangan",
+    "traffic_density": 64,
+    "avgFrequency": 2.7,
+    "historicalTrend": [
+      {
+        "month": "Jan 2025/2026",
+        "year": 2026,
+        "grossReach": 118000,
+        "vac": 96000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Feb 2025/2026",
+        "year": 2026,
+        "grossReach": 110920,
+        "vac": 90240,
+        "trafficIndex": 94,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Mar 2025/2026",
+        "year": 2026,
+        "grossReach": 118000,
+        "vac": 96000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Apr 2025/2026",
+        "year": 2026,
+        "grossReach": 135700,
+        "vac": 110400,
+        "trafficIndex": 115,
+        "occupancyPercent": 100
+      },
+      {
+        "month": "Mei 2025/2026",
+        "year": 2026,
+        "grossReach": 135700,
+        "vac": 110400,
+        "trafficIndex": 115,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jun 2025/2026",
+        "year": 2026,
+        "grossReach": 127440,
+        "vac": 103680,
+        "trafficIndex": 108,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Jul 2025/2026",
+        "year": 2026,
+        "grossReach": 127440,
+        "vac": 103680,
+        "trafficIndex": 108,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Agu 2025/2026",
+        "year": 2026,
+        "grossReach": 118000,
+        "vac": 96000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Sep 2025/2026",
+        "year": 2026,
+        "grossReach": 118000,
+        "vac": 96000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Okt 2025/2026",
+        "year": 2026,
+        "grossReach": 118000,
+        "vac": 96000,
+        "trafficIndex": 100,
+        "occupancyPercent": 92
+      },
+      {
+        "month": "Nov 2025/2026",
+        "year": 2026,
+        "grossReach": 118000,
+        "vac": 96000,
+        "trafficIndex": 100,
+        "occupancyPercent": 85
+      },
+      {
+        "month": "Des 2025/2026",
+        "year": 2026,
+        "grossReach": 151040,
+        "vac": 122880,
+        "trafficIndex": 128,
+        "occupancyPercent": 100
+      }
+    ]
+  }
+]

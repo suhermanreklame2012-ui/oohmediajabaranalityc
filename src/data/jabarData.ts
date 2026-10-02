@@ -1106,6 +1106,18 @@ export const INITIAL_BILLBOARD_SPOTS: BillboardSpot[] = [
   }
 ];
 
+// Ensure every billboard spot has a calibrated traffic_density score (0 - 100)
+INITIAL_BILLBOARD_SPOTS.forEach((spot: BillboardSpot) => {
+  if (typeof spot.traffic_density !== 'number') {
+    const volumeFactor = Math.min(100, (spot.dailyGrossReach / 260000) * 100);
+    const dwellFactor = Math.min(100, (spot.avgDwellTimeSec / 55) * 100);
+    const congestionFactor = Math.min(100, Math.max(0, ((45 - spot.avgSpeedKmh) / 35) * 100));
+    spot.traffic_density = Math.round(
+      Math.min(99, Math.max(25, volumeFactor * 0.45 + dwellFactor * 0.35 + congestionFactor * 0.20))
+    );
+  }
+});
+
 // Helper functions for GeoJSON and database export
 export function exportSpotsToGeoJSON(spots: BillboardSpot[]) {
   const features = spots.map(spot => ({

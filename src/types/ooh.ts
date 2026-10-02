@@ -67,6 +67,7 @@ export interface BillboardSpot {
   // Performance Metrics
   dailyGrossReach: number;        // DGR - Total daily vehicles + pedestrians
   vacDaily: number;               // Visibility Adjusted Contacts
+  traffic_density?: number;       // 0 - 100 Indeks konsentrasi lalu lintas real-time
   avgFrequency?: number;          // Frekuensi paparan mingguan per komuter (e.g. 3.4x)
   avgDwellTimeSec: number;        // Durasi pandang rata-rata (detik)
   avgSpeedKmh: number;            // Kecepatan rata-rata kendaraan

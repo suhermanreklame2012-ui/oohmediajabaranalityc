@@ -29,6 +29,7 @@ import {
   Layers 
 } from 'lucide-react';
 import { Map, AdvancedMarker, APIProvider } from '@vis.gl/react-google-maps';
+import { GOOGLE_MAPS_LIBRARIES } from './GoogleMapViewer';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyB_cErEKUXi76tGidnv0ke-zhMtgGYyq-A';
 
@@ -478,7 +479,7 @@ export function LogisticOptimizer({
               apiKey={GOOGLE_MAPS_API_KEY}
               language="id"
               region="ID"
-              libraries={['marker', 'visualization', 'places', 'geometry']}
+              libraries={GOOGLE_MAPS_LIBRARIES}
             >
               <Map
                 defaultCenter={{ lat: currentBase.lat, lng: currentBase.lng }}

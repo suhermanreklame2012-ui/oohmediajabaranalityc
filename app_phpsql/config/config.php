@@ -1,27 +1,32 @@
 <?php
 /**
  * Konfigurasi Database Resilient Dual Engine (SQLite / MySQL)
- * JabarOOH Enterprise Portal
+ * JabarOOH Enterprise Portal - oohmediabandung.com
  */
 
-// Pilihan Driver: 'sqlite' (default tanpa setup) atau 'mysql'
-define('DB_DRIVER', getenv('DB_DRIVER') ?: 'sqlite');
+// Muat config.local.php jika tersedia (untuk override cPanel hosting)
+if (file_exists(__DIR__ . '/config.local.php')) {
+    require_once __DIR__ . '/config.local.php';
+}
+
+// Pilihan Driver: 'mysql' (default hosting cPanel oohmediabandung.com) dengan fallback otomatis ke 'sqlite'
+if (!defined('DB_DRIVER')) define('DB_DRIVER', getenv('DB_DRIVER') ?: 'mysql');
 
 // Konfigurasi SQLite
-define('SQLITE_PATH', __DIR__ . '/../data/app.sqlite');
+if (!defined('SQLITE_PATH')) define('SQLITE_PATH', __DIR__ . '/../data/app.sqlite');
 
-// Konfigurasi MySQL (Untuk XAMPP, cPanel, atau Laragon)
-define('MYSQL_HOST', getenv('MYSQL_HOST') ?: '127.0.0.1');
-define('MYSQL_PORT', getenv('MYSQL_PORT') ?: '3306');
-define('MYSQL_DATABASE', getenv('MYSQL_DATABASE') ?: 'jabarooh_db');
-define('MYSQL_USER', getenv('MYSQL_USER') ?: 'root');
-define('MYSQL_PASSWORD', getenv('MYSQL_PASSWORD') ?: '');
+// Konfigurasi MySQL (cPanel oohmediabandung.com)
+if (!defined('MYSQL_HOST')) define('MYSQL_HOST', getenv('MYSQL_HOST') ?: 'localhost');
+if (!defined('MYSQL_PORT')) define('MYSQL_PORT', getenv('MYSQL_PORT') ?: '3306');
+if (!defined('MYSQL_DATABASE')) define('MYSQL_DATABASE', getenv('MYSQL_DATABASE') ?: 'oohmediabandung_bbmoni');
+if (!defined('MYSQL_USER')) define('MYSQL_USER', getenv('MYSQL_USER') ?: 'oohmediabandung_bbmoni');
+if (!defined('MYSQL_PASSWORD')) define('MYSQL_PASSWORD', getenv('MYSQL_PASSWORD') ?: 'AdminOOH@2026');
 
 // Kredensial Super Administrator Resmi
-define('ADMIN_EMAIL', 'suherman.reklame2012@gmail.com');
-define('ADMIN_PASSWORD', 'AdminOOH@2026');
-define('ADMIN_PIN', '889900');
-define('ADMIN_PHONE', '087822248975');
+if (!defined('ADMIN_EMAIL')) define('ADMIN_EMAIL', 'suherman.reklame2012@gmail.com');
+if (!defined('ADMIN_PASSWORD')) define('ADMIN_PASSWORD', 'AdminOOH@2026');
+if (!defined('ADMIN_PIN')) define('ADMIN_PIN', '889900');
+if (!defined('ADMIN_PHONE')) define('ADMIN_PHONE', '087822248975');
 
 /**
  * Mendapatkan koneksi PDO Database dengan Fallback Otomatis
@@ -38,16 +43,16 @@ function getDbConnection(): PDO {
             $pdo = new PDO($dsn, MYSQL_USER, MYSQL_PASSWORD, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_TIMEOUT => 3
+                PDO::ATTR_TIMEOUT => 2
             ]);
             return $pdo;
         } catch (Exception $e) {
-            error_log("Koneksi MySQL gagal, beralih ke SQLite lokal: " . $e->getMessage());
+            error_log("Koneksi MySQL gagal, beralih otomatis ke SQLite lokal: " . $e->getMessage());
             // Fallback ke SQLite
         }
     }
 
-    // Default: SQLite 3
+    // Default Fallback: SQLite 3
     $sqliteFile = SQLITE_PATH;
     $isNew = !file_exists($sqliteFile);
     

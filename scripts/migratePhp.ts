@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 import { INITIAL_BILLBOARD_SPOTS } from '../src/data/jabarData';
 import { SPOT_POI_MAP } from '../src/data/poiData';
 import { INITIAL_VERIFIED_USERS } from '../src/utils/authService';
@@ -119,12 +120,22 @@ const htaccessContent = `# Apache mod_rewrite for SPA & API Security
   RewriteRule ^config/.*\\.php$ - [F,L]
   RewriteRule ^\\.env.*$ - [F,L]
 
-  # 2. Allow direct access to existing files and directories (assets, api, uploads, etc.)
+  # 2. Extensionless API routing to corresponding PHP files
+  RewriteRule ^api/spots/?$ api/spots.php [L,QSA]
+  RewriteRule ^api/spots/([a-zA-Z0-9_\\-]+)/?$ api/spots.php?id=$1 [L,QSA]
+  RewriteRule ^api/auth/?$ api/auth.php [L,QSA]
+  RewriteRule ^api/health/?$ api/health.php [L,QSA]
+  RewriteRule ^api/database/stats/?$ api/stats.php [L,QSA]
+  RewriteRule ^api/database/export/mysql/?$ api/export_mysql.php [L,QSA]
+  RewriteRule ^api/database/export/sqlite/?$ api/export_sqlite.php [L,QSA]
+  RewriteRule ^api/leads/?$ api/leads.php [L,QSA]
+
+  # 3. Allow direct access to existing files and directories (assets, api, uploads, etc.)
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # 3. Route all other requests to index.php for client-side routing
+  # 4. Route all other requests to index.php for client-side routing
   RewriteRule ^ index.php [L]
 </IfModule>
 
@@ -140,27 +151,32 @@ console.log('✅ Generated app_phpsql/.htaccess');
 const configExampleContent = `<?php
 /**
  * Konfigurasi Database Resilient Dual Engine (SQLite / MySQL)
- * JabarOOH Enterprise Portal
+ * JabarOOH Enterprise Portal - oohmediabandung.com
  */
 
-// Pilihan Driver: 'sqlite' (default tanpa setup) atau 'mysql'
-define('DB_DRIVER', getenv('DB_DRIVER') ?: 'sqlite');
+// Muat config.local.php jika tersedia (untuk override cPanel hosting)
+if (file_exists(__DIR__ . '/config.local.php')) {
+    require_once __DIR__ . '/config.local.php';
+}
+
+// Pilihan Driver: 'mysql' (default hosting cPanel oohmediabandung.com) dengan fallback otomatis ke 'sqlite'
+if (!defined('DB_DRIVER')) define('DB_DRIVER', getenv('DB_DRIVER') ?: 'mysql');
 
 // Konfigurasi SQLite
-define('SQLITE_PATH', __DIR__ . '/../data/app.sqlite');
+if (!defined('SQLITE_PATH')) define('SQLITE_PATH', __DIR__ . '/../data/app.sqlite');
 
-// Konfigurasi MySQL (Untuk XAMPP, cPanel, atau Laragon)
-define('MYSQL_HOST', getenv('MYSQL_HOST') ?: '127.0.0.1');
-define('MYSQL_PORT', getenv('MYSQL_PORT') ?: '3306');
-define('MYSQL_DATABASE', getenv('MYSQL_DATABASE') ?: 'jabarooh_db');
-define('MYSQL_USER', getenv('MYSQL_USER') ?: 'root');
-define('MYSQL_PASSWORD', getenv('MYSQL_PASSWORD') ?: '');
+// Konfigurasi MySQL (cPanel oohmediabandung.com)
+if (!defined('MYSQL_HOST')) define('MYSQL_HOST', getenv('MYSQL_HOST') ?: 'localhost');
+if (!defined('MYSQL_PORT')) define('MYSQL_PORT', getenv('MYSQL_PORT') ?: '3306');
+if (!defined('MYSQL_DATABASE')) define('MYSQL_DATABASE', getenv('MYSQL_DATABASE') ?: 'oohmediabandung_bbmoni');
+if (!defined('MYSQL_USER')) define('MYSQL_USER', getenv('MYSQL_USER') ?: 'oohmediabandung_bbmoni');
+if (!defined('MYSQL_PASSWORD')) define('MYSQL_PASSWORD', getenv('MYSQL_PASSWORD') ?: 'AdminOOH@2026');
 
 // Kredensial Super Administrator Resmi
-define('ADMIN_EMAIL', 'suherman.reklame2012@gmail.com');
-define('ADMIN_PASSWORD', 'AdminOOH@2026');
-define('ADMIN_PIN', '889900');
-define('ADMIN_PHONE', '087822248975');
+if (!defined('ADMIN_EMAIL')) define('ADMIN_EMAIL', 'suherman.reklame2012@gmail.com');
+if (!defined('ADMIN_PASSWORD')) define('ADMIN_PASSWORD', 'AdminOOH@2026');
+if (!defined('ADMIN_PIN')) define('ADMIN_PIN', '889900');
+if (!defined('ADMIN_PHONE')) define('ADMIN_PHONE', '087822248975');
 
 /**
  * Mendapatkan koneksi PDO Database dengan Fallback Otomatis
@@ -177,16 +193,16 @@ function getDbConnection(): PDO {
             $pdo = new PDO($dsn, MYSQL_USER, MYSQL_PASSWORD, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_TIMEOUT => 3
+                PDO::ATTR_TIMEOUT => 2
             ]);
             return $pdo;
         } catch (Exception $e) {
-            error_log("Koneksi MySQL gagal, beralih ke SQLite lokal: " . $e->getMessage());
+            error_log("Koneksi MySQL gagal, beralih otomatis ke SQLite lokal: " . $e->getMessage());
             // Fallback ke SQLite
         }
     }
 
-    // Default: SQLite 3
+    // Default Fallback: SQLite 3
     $sqliteFile = SQLITE_PATH;
     $isNew = !file_exists($sqliteFile);
     
@@ -469,6 +485,52 @@ try {
         exit;
     }
 
+    if ($method === 'PUT') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $id = $_GET['id'] ?? ($input['id'] ?? null);
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'ID titik diperlukan']);
+            exit;
+        }
+
+        $fields = [];
+        $params = [];
+        if (isset($input['name'])) { $fields[] = "name = ?"; $params[] = $input['name']; }
+        if (isset($input['occupancyStatus'])) { $fields[] = "occupancy_status = ?"; $params[] = $input['occupancyStatus']; }
+        if (isset($input['currentBrand'])) { $fields[] = "current_brand = ?"; $params[] = $input['currentBrand']; }
+        if (isset($input['ratePerMonthIdr'])) { $fields[] = "rate_per_month_idr = ?"; $params[] = $input['ratePerMonthIdr']; }
+        if (isset($input['dailyGrossReach'])) { $fields[] = "daily_gross_reach = ?"; $params[] = $input['dailyGrossReach']; }
+        if (isset($input['vacDaily'])) { $fields[] = "vac_daily = ?"; $params[] = $input['vacDaily']; }
+        if (isset($input['effectivenessScore'])) { $fields[] = "effectiveness_score = ?"; $params[] = $input['effectivenessScore']; }
+        
+        if (empty($fields)) {
+            echo json_encode(['success' => true, 'message' => 'Tidak ada perubahan']);
+            exit;
+        }
+
+        $params[] = $id;
+        $sql = "UPDATE billboard_spots SET " . implode(", ", $fields) . " WHERE spot_id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+
+        echo json_encode(['success' => true, 'message' => 'Titik berhasil diperbarui', 'id' => $id]);
+        exit;
+    }
+
+    if ($method === 'DELETE') {
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'ID titik diperlukan']);
+            exit;
+        }
+        $stmt = $pdo->prepare("DELETE FROM billboard_spots WHERE spot_id = ?");
+        $stmt->execute([$id]);
+        echo json_encode(['success' => true, 'message' => 'Titik berhasil dihapus', 'id' => $id]);
+        exit;
+    }
+
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
@@ -486,7 +548,81 @@ function returnResponse($success, $data, $count, $source) {
 `;
 
 fs.writeFileSync(path.join(TARGET_DIR, 'api', 'spots.php'), apiSpotsContent, 'utf8');
-console.log('✅ Generated app_phpsql/api/spots.php');
+console.log('✅ Generated app_phpsql/api/spots.php (Full CRUD: GET, POST, PUT, DELETE)');
+
+// 8b. Generate app_phpsql/api/export_mysql.php
+const apiExportMysqlContent = `<?php
+/**
+ * Export MySQL SQL Dump Download
+ */
+$filePath = __DIR__ . '/../database.sql';
+if (!file_exists($filePath)) {
+    http_response_code(404);
+    echo "File database.sql tidak ditemukan";
+    exit;
+}
+header('Content-Type: application/sql');
+header('Content-Disposition: attachment; filename="database_bandung_media_outdoor_mysql.sql"');
+header('Content-Length: ' . filesize($filePath));
+readfile($filePath);
+exit;
+`;
+fs.writeFileSync(path.join(TARGET_DIR, 'api', 'export_mysql.php'), apiExportMysqlContent, 'utf8');
+console.log('✅ Generated app_phpsql/api/export_mysql.php');
+
+// 8c. Generate app_phpsql/api/export_sqlite.php
+const apiExportSqliteContent = `<?php
+/**
+ * Export SQLite Database File / Dump Download
+ */
+$sqlitePath = __DIR__ . '/../data/app.sqlite';
+$sqlPath = __DIR__ . '/../database.sql';
+
+if (file_exists($sqlitePath)) {
+    header('Content-Type: application/x-sqlite3');
+    header('Content-Disposition: attachment; filename="database_bandung_media_outdoor_sqlite.sqlite"');
+    header('Content-Length: ' . filesize($sqlitePath));
+    readfile($sqlitePath);
+    exit;
+} else if (file_exists($sqlPath)) {
+    header('Content-Type: application/sql');
+    header('Content-Disposition: attachment; filename="database_bandung_media_outdoor_sqlite.sql"');
+    header('Content-Length: ' . filesize($sqlPath));
+    readfile($sqlPath);
+    exit;
+} else {
+    http_response_code(404);
+    echo "Database belum diinisialisasi";
+    exit;
+}
+`;
+fs.writeFileSync(path.join(TARGET_DIR, 'api', 'export_sqlite.php'), apiExportSqliteContent, 'utf8');
+console.log('✅ Generated app_phpsql/api/export_sqlite.php');
+
+// 8d. Generate app_phpsql/api/stats.php
+const apiStatsContent = `<?php
+header('Content-Type: application/json; charset=utf-8');
+require_once __DIR__ . '/../config/config.php';
+try {
+    $pdo = getDbConnection();
+    $stmt = $pdo->query("SELECT COUNT(*) as spot_count FROM billboard_spots");
+    $count = (int)$stmt->fetchColumn();
+    echo json_encode([
+        'success' => true,
+        'driver' => DB_DRIVER,
+        'totalSpots' => $count,
+        'dbStatus' => 'connected',
+        'serverTime' => date('Y-m-d H:i:s')
+    ]);
+} catch (Exception $e) {
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage()
+    ]);
+}
+`;
+fs.writeFileSync(path.join(TARGET_DIR, 'api', 'stats.php'), apiStatsContent, 'utf8');
+console.log('✅ Generated app_phpsql/api/stats.php');
 
 // 9. Generate app_phpsql/api/auth.php
 const apiAuthContent = `<?php
@@ -773,5 +909,25 @@ $spots = $stmt->fetchAll();
 `;
 fs.writeFileSync(path.join(TARGET_DIR, 'admin', 'index.php'), adminIndexContent, 'utf8');
 console.log('✅ Generated app_phpsql/admin/index.php');
+
+// 13. Sync root SQL files for Node.js development server downloads
+try {
+  fs.copyFileSync(path.join(TARGET_DIR, 'database.sql'), path.join(ROOT_DIR, 'hosting_import_mysql.sql'));
+  fs.copyFileSync(path.join(TARGET_DIR, 'database.sql'), path.join(ROOT_DIR, 'hosting_import_sqlite.sql'));
+  console.log('✅ Synchronized hosting_import_mysql.sql & hosting_import_sqlite.sql');
+} catch (err: any) {
+  console.warn('⚠️ SQL copy notice:', err.message);
+}
+
+// 14. Automatically Package ZIP and TAR.GZ for 1-Click cPanel Upload
+try {
+  console.log('📦 Compressing app_phpsql into production deployment archives...');
+  execSync('python3 -m zipfile -c app_phpsql.zip app_phpsql', { stdio: 'inherit' });
+  execSync('tar -czf app_phpsql.tar.gz app_phpsql', { stdio: 'inherit' });
+  console.log('✅ Generated app_phpsql.zip (Ready for 1-Click cPanel File Manager Upload & Extract)');
+  console.log('✅ Generated app_phpsql.tar.gz');
+} catch (err: any) {
+  console.warn('⚠️ Archive compression notice:', err.message);
+}
 
 console.log('🎉 Universal Migration to app_phpsql completed successfully!');

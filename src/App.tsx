@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { BillboardSpot } from './types/ooh';
 import { INITIAL_BILLBOARD_SPOTS } from './data/jabarData';
 import { Navbar, NavTabType } from './components/Navbar';
+import { GlobalPerformanceSummary } from './components/GlobalPerformanceSummary';
 import { GoogleMapViewer } from './components/GoogleMapViewer';
 import { MapViewer } from './components/MapViewer';
 import { RealTimeStats } from './components/RealTimeStats';
@@ -176,155 +177,169 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans grid grid-rows-[auto_1fr] [grid-template-areas:'app-header''app-main'] overflow-x-hidden">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-2 px-4 py-2.5 bg-slate-900 border border-amber-400/50 text-white text-xs rounded-xl shadow-2xl backdrop-blur-md">
+        <div className="fixed top-16 right-6 z-50 flex items-center gap-2 px-4 py-2.5 bg-slate-900 border border-amber-400/50 text-white text-xs rounded-xl shadow-2xl backdrop-blur-md">
           <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Top Bar Navigation */}
-      <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onOpenAddModal={() => {
-          setPrefilledSpot(null);
-          setIsAddModalOpen(true);
-        }}
-        onOpenExportModal={() => setIsExportModalOpen(true)}
-        totalSpotsCount={spots.length}
-        isSyncing={isSyncing}
-        lastSyncTime={lastSyncTime}
-        currentUser={session?.user || null}
-        onLockScreen={() => {
-          setIsLocked(true);
-          if (session) saveActiveSession({ ...session, isLocked: true });
-        }}
-        onLogout={() => {
-          setSession(null);
-          setIsLocked(false);
-          saveActiveSession(null);
-          showToast('Sesi operator telah diakhiri. Sistem terkunci.');
-        }}
-      />
+      <div className="[grid-area:app-header] z-40">
+        <Navbar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onOpenAddModal={() => {
+            setPrefilledSpot(null);
+            setIsAddModalOpen(true);
+          }}
+          onOpenExportModal={() => setIsExportModalOpen(true)}
+          totalSpotsCount={spots.length}
+          isSyncing={isSyncing}
+          lastSyncTime={lastSyncTime}
+          currentUser={session?.user || null}
+          onLockScreen={() => {
+            setIsLocked(true);
+            if (session) saveActiveSession({ ...session, isLocked: true });
+          }}
+          onLogout={() => {
+            setSession(null);
+            setIsLocked(false);
+            saveActiveSession(null);
+            showToast('Sesi operator telah diakhiri. Sistem terkunci.');
+          }}
+        />
+      </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full">
-        {activeTab === 'map' && mapEngine === 'google' && (
-          <GoogleMapViewer
+      <main className="[grid-area:app-main] relative w-full h-full overflow-hidden flex flex-col">
+        {/* Global Performance Summary Card at top of the Dashboard Main View */}
+        {activeTab === 'map' && (
+          <GlobalPerformanceSummary
             spots={spots}
-            selectedSpot={selectedSpot}
-            onSelectSpot={setSelectedSpot}
-            onOpenDetailModal={setDetailModalSpot}
-            onSwitchToLeaflet={() => setMapEngine('leaflet')}
+            lastSyncTime={lastSyncTime}
+            onOpenAvailableSpots={() => setActiveTab('database')}
+            onNavigateToAnalytics={() => setActiveTab('realtime')}
           />
         )}
 
-        {activeTab === 'map' && mapEngine === 'leaflet' && (
-          <MapViewer
-            spots={spots}
-            selectedSpot={selectedSpot}
-            onSelectSpot={setSelectedSpot}
-            onOpenDetailModal={setDetailModalSpot}
-            onSwitchToGoogle={() => setMapEngine('google')}
-          />
-        )}
+        <div className={`relative w-full flex-1 min-h-0 ${activeTab === 'map' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+          {activeTab === 'map' && mapEngine === 'google' && (
+            <GoogleMapViewer
+              spots={spots}
+              selectedSpot={selectedSpot}
+              onSelectSpot={setSelectedSpot}
+              onOpenDetailModal={setDetailModalSpot}
+              onSwitchToLeaflet={() => setMapEngine('leaflet')}
+            />
+          )}
 
-        {activeTab === 'realtime' && (
-          <RealTimeStats
-            spots={spots}
-            onSelectSpot={handleOpenMapWithSpot}
-            onOpenDetailModal={setDetailModalSpot}
-            onNavigateToLogisticOptimizer={() => setActiveTab('logistic-optimizer')}
-          />
-        )}
+          {activeTab === 'map' && mapEngine === 'leaflet' && (
+            <MapViewer
+              spots={spots}
+              selectedSpot={selectedSpot}
+              onSelectSpot={setSelectedSpot}
+              onOpenDetailModal={setDetailModalSpot}
+              onSwitchToGoogle={() => setMapEngine('google')}
+            />
+          )}
 
-        {activeTab === 'traffic-insights' && (
-          <TrafficInsights
-            spots={spots}
-            onOpenMapTab={handleOpenMapWithSpot}
-          />
-        )}
+          {activeTab === 'realtime' && (
+            <RealTimeStats
+              spots={spots}
+              onSelectSpot={handleOpenMapWithSpot}
+              onOpenDetailModal={setDetailModalSpot}
+              onNavigateToLogisticOptimizer={() => setActiveTab('logistic-optimizer')}
+            />
+          )}
 
-        {activeTab === 'predictive' && (
-          <PredictiveAnalytics
-            spots={spots}
-            onOpenMapTab={handleOpenMapWithSpot}
-            onOpenDetailModal={setDetailModalSpot}
-          />
-        )}
+          {activeTab === 'traffic-insights' && (
+            <TrafficInsights
+              spots={spots}
+              onOpenMapTab={handleOpenMapWithSpot}
+            />
+          )}
 
-        {activeTab === 'effectiveness' && (
-          <EffectivenessAnalysis
-            spots={spots}
-            onSelectSpot={handleOpenMapWithSpot}
-            onOpenDetailModal={setDetailModalSpot}
-          />
-        )}
+          {activeTab === 'predictive' && (
+            <PredictiveAnalytics
+              spots={spots}
+              onOpenMapTab={handleOpenMapWithSpot}
+              onOpenDetailModal={setDetailModalSpot}
+            />
+          )}
 
-        {activeTab === 'demographic' && (
-          <DemographicAnalysis
-            spots={spots}
-            initialSpotId={selectedSpot?.id}
-            onOpenDetailModal={setDetailModalSpot}
-            onNavigateToMap={handleOpenMapWithSpot}
-          />
-        )}
+          {activeTab === 'effectiveness' && (
+            <EffectivenessAnalysis
+              spots={spots}
+              onSelectSpot={handleOpenMapWithSpot}
+              onOpenDetailModal={setDetailModalSpot}
+            />
+          )}
 
-        {activeTab === 'database' && (
-          <DatabaseTable
-            spots={spots}
-            onSelectSpot={setSelectedSpot}
-            onOpenDetailModal={setDetailModalSpot}
-            onOpenAddModal={() => setIsAddModalOpen(true)}
-            onOpenMapTab={handleOpenMapWithSpot}
-          />
-        )}
+          {activeTab === 'demographic' && (
+            <DemographicAnalysis
+              spots={spots}
+              initialSpotId={selectedSpot?.id}
+              onOpenDetailModal={setDetailModalSpot}
+              onNavigateToMap={handleOpenMapWithSpot}
+            />
+          )}
 
-        {activeTab === 'planner' && (
-          <CampaignPlanner
-            spots={spots}
-            onOpenMapTab={handleOpenMapWithSpot}
-            onOpenDetailModal={setDetailModalSpot}
-          />
-        )}
+          {activeTab === 'database' && (
+            <DatabaseTable
+              spots={spots}
+              onSelectSpot={setSelectedSpot}
+              onOpenDetailModal={setDetailModalSpot}
+              onOpenAddModal={() => setIsAddModalOpen(true)}
+              onOpenMapTab={handleOpenMapWithSpot}
+            />
+          )}
 
-        {activeTab === 'omnichannel-planner' && (
-          <OmnichannelMediaStrategyPlanner
-            spots={spots}
-            onOpenDetailModal={setDetailModalSpot}
-            onNavigateToMap={() => setActiveTab('map')}
-          />
-        )}
+          {activeTab === 'planner' && (
+            <CampaignPlanner
+              spots={spots}
+              onOpenMapTab={handleOpenMapWithSpot}
+              onOpenDetailModal={setDetailModalSpot}
+            />
+          )}
 
-        {activeTab === 'ai-pipeline' && (
-          <AiOmnichannelPipeline
-            onOpenMapTab={(coords) => {
-              const matched = spots.find(s => 
-                Math.abs(s.coordinates.lat - coords.lat) < 0.05 && 
-                Math.abs(s.coordinates.lng - coords.lng) < 0.05
-              ) || spots[0];
-              handleOpenMapWithSpot(matched);
-            }}
-          />
-        )}
+          {activeTab === 'omnichannel-planner' && (
+            <OmnichannelMediaStrategyPlanner
+              spots={spots}
+              onOpenDetailModal={setDetailModalSpot}
+              onNavigateToMap={() => setActiveTab('map')}
+            />
+          )}
 
-        {activeTab === 'logistic-optimizer' && (
-          <LogisticOptimizer
-            spots={spots}
-            onOpenDetailModal={setDetailModalSpot}
-            onNavigateToInteractiveMap={handleOpenMapWithSpot}
-          />
-        )}
+          {activeTab === 'ai-pipeline' && (
+            <AiOmnichannelPipeline
+              onOpenMapTab={(coords) => {
+                const matched = spots.find(s => 
+                  Math.abs(s.coordinates.lat - coords.lat) < 0.05 && 
+                  Math.abs(s.coordinates.lng - coords.lng) < 0.05
+                ) || spots[0];
+                handleOpenMapWithSpot(matched);
+              }}
+            />
+          )}
 
-        {activeTab === 'reports' && (
-          <ReportGenerator
-            spots={spots}
-            onOpenDetailModal={setDetailModalSpot}
-          />
-        )}
+          {activeTab === 'logistic-optimizer' && (
+            <LogisticOptimizer
+              spots={spots}
+              onOpenDetailModal={setDetailModalSpot}
+              onNavigateToInteractiveMap={handleOpenMapWithSpot}
+            />
+          )}
+
+          {activeTab === 'reports' && (
+            <ReportGenerator
+              spots={spots}
+              onOpenDetailModal={setDetailModalSpot}
+            />
+          )}
+        </div>
       </main>
 
       {/* Footer (Subtle, unobtrusive - shows server-side SQLite & MySQL status) */}

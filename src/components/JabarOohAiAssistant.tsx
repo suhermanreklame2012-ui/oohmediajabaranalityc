@@ -299,31 +299,17 @@ export function JabarOohAiAssistant({
     <>
       {/* 1. FLOATING ACTION LAUNCHER (When closed) */}
       {!isOpen && (
-        <div className="fixed bottom-5 right-5 z-40 flex items-center gap-2">
-          {/* Helpful callout badge on desktop */}
-          <div 
-            onClick={() => {
-              setIsOpen(true);
-              setActiveTab('site-recommendations');
-            }}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/95 hover:bg-slate-800 border border-teal-500/40 rounded-full shadow-xl text-xs text-slate-200 backdrop-blur-md cursor-pointer transition-all hover:scale-105"
-            title="Klik untuk melihat rekomendasi lokasi titik reklame baru"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
-            <span className="font-semibold text-[11px] text-teal-300">Saran Lokasi Baru</span>
-            <span className="text-[10px] text-slate-400">· Trafik & Demografi</span>
-          </div>
-
+        <div className="fixed bottom-4 right-4 z-40 flex items-center gap-2 pointer-events-auto">
           <button
             onClick={() => setIsOpen(true)}
-            className="group relative flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-teal-700 via-teal-600 to-emerald-500 hover:from-teal-600 hover:to-emerald-400 text-white rounded-2xl shadow-2xl shadow-teal-900/50 border border-teal-400/40 transition-all duration-300 hover:scale-105 active:scale-95"
-            title="Buka JabarOOH AI Assistant"
+            className="group relative flex items-center justify-center w-12 h-12 bg-gradient-to-tr from-teal-700 via-teal-600 to-emerald-500 hover:from-teal-600 hover:to-emerald-400 text-white rounded-xl shadow-2xl shadow-teal-900/50 border border-teal-400/40 transition-all duration-300 hover:scale-105 active:scale-95"
+            title="Buka JabarOOH AI Assistant (Analisis Trafik & Rekomendasi Lokasi)"
             aria-label="Buka JabarOOH AI Assistant"
           >
-            <Bot className="w-7 h-7 text-white drop-shadow" />
+            <Bot className="w-6 h-6 text-white drop-shadow" />
             
             {/* Online Pulse Dot */}
-            <span className="absolute top-2 right-2 w-3 h-3 bg-emerald-400 border-2 border-slate-950 rounded-full">
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 border-2 border-slate-950 rounded-full">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             </span>
           </button>

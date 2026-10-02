@@ -259,8 +259,11 @@ export function GoogleMapViewer({
   const [kpiHeatmapMetric, setKpiHeatmapMetric] = useState<'composite' | 'roi' | 'conversion'>('composite');
   const [selectedCompetitorZone, setSelectedCompetitorZone] = useState<CompetitorZone | null>(null);
   const [competitorSectorFilter, setCompetitorSectorFilter] = useState<string>('all');
-  const [showQuickView, setShowQuickView] = useState<boolean>(true);
+  const [showQuickView, setShowQuickView] = useState<boolean>(false);
   const [isQuickViewMinimized, setIsQuickViewMinimized] = useState<boolean>(false);
+  const [showRegionDropdown, setShowRegionDropdown] = useState<boolean>(false);
+  const [showFilterPopover, setShowFilterPopover] = useState<boolean>(false);
+  const [showLegendPopover, setShowLegendPopover] = useState<boolean>(false);
   const [currentMapBounds, setCurrentMapBounds] = useState<google.maps.LatLngBounds | null>(null);
   const [showHotspotPins, setShowHotspotPins] = useState<boolean>(true);
   const [showReachCircles, setShowReachCircles] = useState<boolean>(false);
@@ -269,6 +272,14 @@ export function GoogleMapViewer({
   const [showCorridorDrawer, setShowCorridorDrawer] = useState<boolean>(false);
   const [activeHotspot, setActiveHotspot] = useState<TrafficHeatPoint | null>(null);
   const [infoWindowSpot, setInfoWindowSpot] = useState<BillboardSpot | null>(null);
+  const [activeWidgetTab, setActiveWidgetTab] = useState<'spot' | 'quickview' | 'corridor'>('spot');
+
+  // Synchronize active widget tab when a spot is clicked or selected
+  useEffect(() => {
+    if (selectedSpot) {
+      setActiveWidgetTab('spot');
+    }
+  }, [selectedSpot]);
 
   // Toggle handler for Marker Clustering
   const handleToggleClustering = () => {
@@ -539,6 +550,8 @@ export function GoogleMapViewer({
     return clusterRegencies.every(r => selectedRegencies.includes(r));
   };
 
+  const hasActiveWidget = Boolean(selectedSpot || showCorridorDrawer || showQuickView);
+
   return (
     <APIProvider 
       apiKey={GOOGLE_MAPS_API_KEY} 
@@ -546,757 +559,285 @@ export function GoogleMapViewer({
       region="ID"
       libraries={GOOGLE_MAPS_LIBRARIES}
     >
-      <div className={`relative w-full ${isFullscreen ? 'h-screen fixed inset-0 z-50' : 'h-[calc(100vh-4rem)]'} flex flex-col overflow-hidden bg-slate-950 font-sans`}>
+      <div 
+        className={`relative w-full ${isFullscreen ? 'h-screen fixed inset-0 z-50' : 'h-full'} grid ${hasActiveWidget ? 'lg:grid-cols-[1fr_390px] xl:grid-cols-[1fr_420px]' : 'grid-cols-1'} [grid-template-areas:'map-viewport'] lg:${hasActiveWidget ? "[grid-template-areas:'map-viewport_widget-panel']" : "[grid-template-areas:'map-viewport']"} overflow-hidden bg-slate-950 font-sans transition-all duration-200`}
+      >
+        {/* Map Viewport Grid Area */}
+        <div className="[grid-area:map-viewport] relative w-full h-full overflow-hidden flex flex-col">
         
-        {/* Top Filter and Controls Bar */}
-        <div className="absolute top-3 left-3 right-16 z-20 flex flex-col gap-2 pointer-events-auto max-w-5xl">
-          
-          {/* Row 1: Search, Filter Selects, Provider Badge */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Google Maps Geocoding API Location Search Bar */}
-            <MapLocationSearch 
-              onLocationSelected={(location) => {
-                setSearchedLocation(location);
-                setShowSearchPinInfo(true);
+        {/* TOP FLOATING COMMAND DOCK - Clean, Modular, Single-Row */}
+        <div className="absolute top-3.5 left-4 z-20 flex flex-wrap items-center gap-2 pointer-events-auto max-w-[calc(100vw-6rem)]">
+          {/* 1. Location Search */}
+          <MapLocationSearch 
+            onLocationSelected={(location) => {
+              setSearchedLocation(location);
+              setShowSearchPinInfo(true);
+            }}
+          />
+
+          {/* 2. Wilayah Selector Popover Button */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowRegionDropdown(!showRegionDropdown);
+                setShowFilterPopover(false);
+                setShowLayerPanel(false);
               }}
-            />
-
-            <div className="flex items-center gap-2 p-1.5 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-lg shadow-2xl">
-              {/* Quick dropdown for all 27 regencies */}
-              <select
-                value={selectedRegencies.length === 1 ? selectedRegencies[0] : (selectedRegencies.length === 0 ? 'Semua' : 'custom_multi')}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === 'Semua') {
-                    handleResetWestJava();
-                  } else if (val === 'custom_multi') {
-                    setShowAllRegionsModal(true);
-                  } else {
-                    handleSelectSingleRegency(val);
-                  }
-                }}
-                className="px-2 py-1 text-xs text-slate-200 bg-slate-950 border border-slate-800 rounded-md focus:outline-none focus:border-amber-400 font-medium cursor-pointer"
-              >
-                <option value="Semua">Semua Wilayah Jabar (27 Kota/Kab · {spots.length} Titik)</option>
-                {selectedRegencies.length > 1 && (
-                  <option value="custom_multi">
-                    ✓ {selectedRegencies.length} Wilayah Terpilih ({filteredSpots.length} Titik)
-                  </option>
-                )}
-                {WEST_JAVA_REGENCIES.map(r => {
-                  const count = spotCountByRegency[r.name] || 0;
-                  return (
-                    <option key={r.name} value={r.name}>
-                      {r.name} ({count} titik reklame)
-                    </option>
-                  );
-                })}
-              </select>
-
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="hidden sm:block px-2 py-1 text-xs text-slate-200 bg-slate-950 border border-slate-800 rounded-md focus:outline-none focus:border-amber-400"
-              >
-                <option value="Semua">Semua Format Reklame</option>
-                <option value="LED Videotron">LED Videotron</option>
-                <option value="Megatron">Megatron</option>
-                <option value="Static Billboard">Static Billboard</option>
-                <option value="JPO Pedestrian Bridge">JPO Bridge</option>
-              </select>
-
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="hidden md:block px-2 py-1 text-xs text-slate-200 bg-slate-950 border border-slate-800 rounded-md focus:outline-none focus:border-amber-400"
-              >
-                <option value="Semua">Semua Status</option>
-                <option value="Occupied">Terisi (Occupied)</option>
-                <option value="Available">Tersedia (Available)</option>
-                <option value="Reserved">Reserved</option>
-              </select>
-            </div>
-
-            {/* Google Maps Official Verified Badge */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/95 backdrop-blur-md border border-emerald-500/50 text-emerald-400 rounded-lg shadow-xl text-xs font-semibold">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Google Maps Resmi</span>
-            </div>
-
-            {/* Quick Layer Toggles for Satellite, Terrain, and Traffic */}
-            <div className="flex items-center gap-1 p-1 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-lg shadow-xl text-xs">
-              {/* Satellite Toggle */}
-              <button
-                onClick={handleToggleSatellite}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 border ${
-                  isSatelliteActive
-                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/60 shadow-sm shadow-cyan-500/20'
-                    : 'text-slate-400 hover:text-white border-transparent hover:bg-slate-800'
-                }`}
-                title="Aktifkan / Nonaktifkan Tampilan Citra Satelit Google Earth"
-              >
-                <Satellite className="w-3.5 h-3.5" />
-                <span>Satelit</span>
-                <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
-                  isSatelliteActive ? 'bg-cyan-500/30 text-cyan-200' : 'bg-slate-800 text-slate-500'
-                }`}>
-                  {isSatelliteActive ? 'ON' : 'OFF'}
-                </span>
-              </button>
-
-              {/* Terrain Toggle */}
-              <button
-                onClick={handleToggleTerrain}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 border ${
-                  isTerrainActive
-                    ? 'bg-amber-500/20 text-amber-300 border-amber-400/60 shadow-sm shadow-amber-500/20'
-                    : 'text-slate-400 hover:text-white border-transparent hover:bg-slate-800'
-                }`}
-                title="Aktifkan / Nonaktifkan Tampilan Medan & Kontur Topografi"
-              >
-                <Mountain className="w-3.5 h-3.5" />
-                <span>Terrain</span>
-                <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
-                  isTerrainActive ? 'bg-amber-500/30 text-amber-200' : 'bg-slate-800 text-slate-500'
-                }`}>
-                  {isTerrainActive ? 'ON' : 'OFF'}
-                </span>
-              </button>
-
-              {/* Traffic Layer Toggle */}
-              <button
-                onClick={handleToggleTraffic}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 border ${
-                  showTrafficLayer
-                    ? 'bg-red-500/20 text-red-300 border-red-500/60 shadow-sm shadow-red-500/20'
-                    : 'text-slate-400 hover:text-white border-transparent hover:bg-slate-800'
-                }`}
-                title="Aktifkan / Nonaktifkan Lapisan Lalu Lintas Real-Time Google Maps"
-              >
-                <Car className="w-3.5 h-3.5" />
-                <span>Lalu Lintas</span>
-                <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
-                  showTrafficLayer ? 'bg-red-500/30 text-red-200' : 'bg-slate-800 text-slate-500'
-                }`}>
-                  {showTrafficLayer ? 'LIVE' : 'OFF'}
-                </span>
-              </button>
-
-              {/* Real-Time Traffic Density Heatmap Toggle ('traffic_density') */}
-              <button
-                onClick={handleToggleTrafficDensityHeatmap}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 border ${
-                  showTrafficDensityHeatmap
-                    ? 'bg-gradient-to-r from-amber-500/25 to-rose-500/25 text-amber-300 border-amber-400/80 shadow-md shadow-amber-500/20 ring-1 ring-amber-400/50'
-                    : 'text-slate-400 hover:text-white border-transparent hover:bg-slate-800'
-                }`}
-                title="Visualisasikan Konsentrasi Lalu Lintas Real-Time (Heatmap Layer 'traffic_density')"
-              >
-                <Activity className={`w-3.5 h-3.5 ${showTrafficDensityHeatmap ? 'text-amber-400 animate-pulse' : 'text-slate-400'}`} />
-                <span>Heatmap Trafik</span>
-                <span className={`text-[9px] px-1 py-0.2 rounded font-mono font-bold ${
-                  showTrafficDensityHeatmap ? 'bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-500'
-                }`}>
-                  {showTrafficDensityHeatmap ? 'DENSITY' : 'OFF'}
-                </span>
-              </button>
-
-              {/* Competitor Presence Toggle */}
-              <button
-                onClick={handleToggleCompetitorLayer}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 border ${
-                  showCompetitorLayer
-                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/60 shadow-sm shadow-rose-500/20 ring-1 ring-rose-500/40'
-                    : 'text-slate-400 hover:text-white border-transparent hover:bg-slate-800'
-                }`}
-                title="Aktifkan / Nonaktifkan Layer Kehadiran Kompetitor & Ruang Pasar Terbuka (Untapped Spaces)"
-              >
-                <Swords className="w-3.5 h-3.5 text-rose-400" />
-                <span>Kompetitor</span>
-                <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
-                  showCompetitorLayer ? 'bg-rose-500/30 text-rose-200 font-bold' : 'bg-slate-800 text-slate-500'
-                }`}>
-                  {showCompetitorLayer ? 'ON' : 'OFF'}
-                </span>
-              </button>
-
-              {/* Marker Clustering Toggle */}
-              <button
-                onClick={handleToggleClustering}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 border ${
-                  isClusteringActive
-                    ? 'bg-amber-400/20 text-amber-300 border-amber-400/60 shadow-sm shadow-amber-400/20 ring-1 ring-amber-400/40'
-                    : 'text-slate-400 hover:text-white border-transparent hover:bg-slate-800'
-                }`}
-                title="Aktifkan / Nonaktifkan Pengelompokan Kluster Titik Reklame (Marker Clustering)"
-              >
-                <Boxes className="w-3.5 h-3.5 text-amber-400" />
-                <span>Kluster</span>
-                <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
-                  isClusteringActive ? 'bg-amber-400/30 text-amber-200 font-bold' : 'bg-slate-800 text-slate-500'
-                }`}>
-                  {isClusteringActive ? 'ON' : 'OFF'}
-                </span>
-              </button>
-
-              {/* Quick View Mode Toggle */}
-              <button
-                onClick={handleToggleQuickView}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 border ${
-                  showQuickView
-                    ? 'bg-amber-500/25 text-amber-300 border-amber-400/80 shadow-sm shadow-amber-500/20 ring-1 ring-amber-400/40'
-                    : 'text-slate-400 hover:text-white border-transparent hover:bg-slate-800'
-                }`}
-                title="Tampilkan 5 Billboard Impresi Tertinggi di Layar Peta (Viewport)"
-              >
-                <Zap className={`w-3.5 h-3.5 ${showQuickView ? 'text-amber-400 fill-amber-400' : 'text-slate-400'}`} />
-                <span>Quick View</span>
-                <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
-                  showQuickView ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-800 text-slate-500'
-                }`}>
-                  {showQuickView ? `${top5ViewportSpots.length}` : 'OFF'}
-                </span>
-              </button>
-
-              {/* KPI Heatmap Toggle */}
-              <button
-                onClick={handleToggleKpiHeatmap}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 border ${
-                  showKpiHeatmap
-                    ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow-lg shadow-amber-400/20 ring-2 ring-amber-400/40'
-                    : 'text-slate-400 hover:text-white border-transparent hover:bg-slate-800'
-                }`}
-                title="Aktifkan / Nonaktifkan Peta Intensitas KPI (Monthly ROI & Conversion Metrics)"
-              >
-                <Flame className={`w-3.5 h-3.5 ${showKpiHeatmap ? 'text-slate-950 fill-slate-950 animate-pulse' : 'text-amber-400'}`} />
-                <span>KPI Heatmap</span>
-                <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
-                  showKpiHeatmap ? 'bg-slate-950 text-amber-400 font-bold' : 'bg-slate-800 text-slate-500'
-                }`}>
-                  {showKpiHeatmap ? 'ON' : 'OFF'}
-                </span>
-              </button>
-
-              {/* Layer Panel Popover Trigger */}
-              <button
-                onClick={() => setShowLayerPanel(!showLayerPanel)}
-                className={`p-1 rounded-md transition-all ${
-                  showLayerPanel ? 'bg-slate-800 text-amber-400' : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-                title="Buka Pengaturan Layer Lengkap"
-              >
-                <Sliders className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {onSwitchToLeaflet && (
-              <button
-                onClick={onSwitchToLeaflet}
-                className="px-2.5 py-1.5 bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 rounded-lg text-xs font-medium transition-colors"
-                title="Beralih ke Open CDN Tile Map"
-              >
-                Mode Open Tiles
-              </button>
-            )}
-          </div>
-
-          {/* Active Competitor Presence Insight Ribbon */}
-          {showCompetitorLayer && (
-            <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-slate-950/95 backdrop-blur-md border border-rose-500/50 rounded-xl shadow-2xl text-xs text-slate-200 animate-in fade-in slide-in-from-top-2 duration-150">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="flex items-center gap-1.5 font-bold text-rose-400 shrink-0">
-                  <Swords className="w-4 h-4 text-rose-400" />
-                  Kehadiran Kompetitor & Untapped Spaces:
-                </span>
-
-                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-red-500" />
-                  Red Ocean ({competitorLayerStats.redOceanCount} Zona Jenuh)
-                </span>
-
-                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 font-medium">
-                  <span className="w-2 h-2 rounded-full bg-amber-500" />
-                  Moderat ({competitorLayerStats.moderateCount})
-                </span>
-
-                <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 font-bold shadow-sm shadow-emerald-500/20 animate-pulse">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                  💎 Peluang Terbuka ({competitorLayerStats.untappedCount} Untapped Blue Ocean)
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[11px] text-slate-400 hidden sm:inline font-medium">Sektor:</span>
-                <select
-                  value={competitorSectorFilter}
-                  onChange={(e) => setCompetitorSectorFilter(e.target.value)}
-                  className="px-2 py-0.5 text-[11px] bg-slate-900 border border-slate-700 text-slate-200 rounded-md focus:outline-none focus:border-rose-400 font-medium cursor-pointer"
-                >
-                  <option value="all">Semua Sektor Industri</option>
-                  <option value="Perbankan">Perbankan & Fintech</option>
-                  <option value="Telekomunikasi">Telekomunikasi & Provider</option>
-                  <option value="Otomotif">Otomotif & EV</option>
-                  <option value="E-Commerce">E-Commerce & Digital</option>
-                  <option value="Properti">Properti & Real Estate</option>
-                  <option value="FMCG">FMCG & F&B</option>
-                </select>
-
-                <button
-                  onClick={() => setShowCompetitorLayer(false)}
-                  className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
-                  title="Sembunyikan Layer Kompetitor"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Active Traffic Density Heatmap Insight Ribbon */}
-          {showTrafficDensityHeatmap && (
-            <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-slate-950/95 backdrop-blur-md border border-amber-500/50 rounded-xl shadow-2xl text-xs text-slate-200 animate-in fade-in slide-in-from-top-2 duration-150">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="flex items-center gap-1.5 font-bold text-amber-400 shrink-0">
-                  <Activity className="w-4 h-4 text-amber-400 animate-pulse" />
-                  Heatmap Konsentrasi Trafik Real-Time ('traffic_density'):
-                </span>
-
-                <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-0.5 rounded-md bg-slate-900 border border-slate-700 font-mono text-slate-300">
-                  <span>Rerata Titik:</span>
-                  <strong className="text-amber-300 font-bold">{avgTrafficDensity}/100</strong>
-                </span>
-
-                <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                  <span>{highTrafficSpotsCount} Titik Padat/Macet Tinggi (≥75)</span>
-                </span>
-
-                {/* Thermal gradient legend */}
-                <div className="hidden sm:flex items-center gap-1.5 pl-2 border-l border-slate-800 text-[10px] text-slate-400">
-                  <span>Gradien:</span>
-                  <div className="flex items-center gap-1">
-                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" title="Lancar (<40)" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" title="Normal (40-60)" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400" title="Ramai (60-75)" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-orange-500" title="Padat (75-85)" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-purple-500" title="Macet Total (>85)" />
-                  </div>
-                  <span className="text-[9px] text-slate-500 font-medium">(Lancar → Macet Total)</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[11px] text-slate-400 hidden md:inline font-medium">Radius:</span>
-                <input
-                  type="range"
-                  min="30"
-                  max="80"
-                  value={trafficHeatmapRadius}
-                  onChange={(e) => setTrafficHeatmapRadius(Number(e.target.value))}
-                  className="w-16 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-400"
-                  title={`Radius Heatmap: ${trafficHeatmapRadius}px`}
-                />
-                <span className="text-[10px] font-mono text-amber-300 w-7">{trafficHeatmapRadius}px</span>
-
-                <button
-                  onClick={() => setShowTrafficDensityHeatmap(false)}
-                  className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
-                  title="Sembunyikan Heatmap Trafik"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Active KPI Heatmap Insight Ribbon */}
-          {showKpiHeatmap && (
-            <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-slate-950/95 backdrop-blur-md border border-amber-500/50 rounded-xl shadow-2xl text-xs text-slate-200 animate-in fade-in slide-in-from-top-2 duration-150">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="flex items-center gap-1.5 font-bold text-amber-400 shrink-0">
-                  <Flame className="w-4 h-4 text-amber-400 fill-amber-400" />
-                  Peta Intensitas KPI Reklame (Monthly ROI & Konversi):
-                </span>
-
-                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold">
-                  <span className="w-2 h-2 rounded-full bg-rose-500" />
-                  Tier 1: ROI &gt; 4.5x &amp; Konversi &gt; 6%
-                </span>
-
-                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 font-medium">
-                  <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  Tier 2: Tinggi
-                </span>
-
-                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-medium">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                  Tier 3: Moderat
-                </span>
-
-                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-medium">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                  Tier 4: Standar
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[11px] text-slate-400 hidden sm:inline font-medium">Metrik Intensitas:</span>
-                <select
-                  value={kpiHeatmapMetric}
-                  onChange={(e) => setKpiHeatmapMetric(e.target.value as any)}
-                  className="px-2 py-0.5 text-[11px] bg-slate-900 border border-slate-700 text-amber-300 rounded-md focus:outline-none focus:border-amber-400 font-semibold cursor-pointer"
-                >
-                  <option value="composite">Komposit (50% ROI + 50% Konversi)</option>
-                  <option value="roi">Hanya Monthly ROI Multiplier</option>
-                  <option value="conversion">Hanya Tingkat Konversi (%)</option>
-                </select>
-
-                <button
-                  onClick={() => setShowKpiHeatmap(false)}
-                  className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
-                  title="Sembunyikan KPI Heatmap"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Active Geocoded Location Banner */}
-          {searchedLocation && (
-            <div className="flex items-center justify-between gap-2 p-2 bg-blue-950/90 backdrop-blur-md border border-blue-500/50 rounded-xl shadow-xl text-xs text-blue-100 animate-in fade-in slide-in-from-top-2 duration-150">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="p-1 rounded-md bg-blue-500/20 text-blue-400 shrink-0">
-                  <Navigation className="w-3.5 h-3.5" />
-                </div>
-                <div className="min-w-0">
-                  <span className="font-bold text-white mr-1.5">{searchedLocation.queryName}</span>
-                  <span className="text-blue-300 text-[11px] truncate hidden sm:inline">({searchedLocation.formattedAddress})</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-400/40 text-blue-200 text-[11px] font-mono rounded-md font-bold">
-                  {nearbySpotsForSearch.length} Billboard dalam 5 km
-                </span>
-                <button
-                  onClick={() => setSearchedLocation(null)}
-                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white rounded-md text-[11px] transition-colors"
-                >
-                  ✕ Hapus Pin
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Row 2: Interactive Region Filter Bar (Bar Filter Wilayah Jawa Barat) */}
-          <div className="flex items-center gap-1.5 p-1.5 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl shadow-2xl overflow-x-auto scrollbar-none">
-            <div className="flex items-center gap-1 text-[11px] font-bold text-amber-400 uppercase tracking-wider px-2 py-0.5 shrink-0 border-r border-slate-800 pr-2.5">
-              <Filter className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">Wilayah:</span>
-            </div>
-
-            {/* Button: Semua Wilayah Jawa Barat */}
-            <button
-              onClick={handleResetWestJava}
-              className={`px-2.5 py-1 text-xs font-semibold rounded-lg shrink-0 transition-all flex items-center gap-1.5 ${
-                selectedRegencies.length === 0
-                  ? 'bg-amber-400 text-slate-950 font-bold shadow-md shadow-amber-400/20'
-                  : 'bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
+              className={`flex items-center gap-1.5 px-3 py-2 border rounded-xl text-xs font-semibold shadow-xl backdrop-blur-md transition-all ${
+                selectedRegencies.length > 0
+                  ? 'bg-amber-400/15 text-amber-300 border-amber-400/50'
+                  : 'bg-slate-900/90 hover:bg-slate-800 text-slate-200 border-slate-800 hover:border-slate-700'
               }`}
             >
-              <span>Seluruh Jabar</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                selectedRegencies.length === 0 ? 'bg-slate-950/20 text-slate-950 font-bold' : 'bg-slate-800 text-slate-400'
-              }`}>
-                {spots.length}
+              <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="truncate max-w-[130px] sm:max-w-[170px]">
+                {selectedRegencies.length === 0 
+                  ? `Seluruh Jabar (${spots.length})` 
+                  : selectedRegencies.length === 1 
+                    ? selectedRegencies[0] 
+                    : `${selectedRegencies.length} Kota/Kab (${filteredSpots.length})`}
               </span>
+              <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${showRegionDropdown ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Primary Quick Hub Chips (Bandung, Bekasi, Bogor, Depok, Karawang, Cirebon, dll) */}
-            {topHubCities.map(city => {
-              const isSelected = selectedRegencies.includes(city.name);
-              return (
-                <button
-                  key={city.name}
-                  onClick={() => handleToggleRegency(city.name)}
-                  className={`px-2.5 py-1 text-xs font-medium rounded-lg shrink-0 transition-all flex items-center gap-1.5 border ${
-                    isSelected
-                      ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow-md shadow-amber-400/20'
-                      : 'bg-slate-950 text-slate-300 hover:text-white hover:bg-slate-800 border-slate-800'
-                  }`}
-                  title={`Filter titik reklame di ${city.name} (${city.count} titik)`}
-                >
-                  <span>{city.shortName}</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                    isSelected ? 'bg-slate-950/20 text-slate-950 font-bold' : 'bg-slate-800 text-amber-400/90'
-                  }`}>
-                    {city.count}
+            {/* Region Dropdown Card */}
+            {showRegionDropdown && (
+              <div className="absolute top-full left-0 mt-2 w-72 sm:w-80 bg-slate-900/98 border border-slate-700/80 rounded-2xl shadow-2xl p-3 z-50 backdrop-blur-xl animate-in fade-in-50 duration-150">
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Pilih Wilayah Jabar
                   </span>
-                </button>
-              );
-            })}
+                  <button
+                    onClick={() => {
+                      setShowAllRegionsModal(true);
+                      setShowRegionDropdown(false);
+                    }}
+                    className="text-[11px] text-amber-400 hover:text-amber-300 font-semibold"
+                  >
+                    Buka 27 Kota/Kab ↗
+                  </button>
+                </div>
 
-            <div className="h-4 w-px bg-slate-800 shrink-0 mx-0.5" />
-
-            {/* Cluster Presets (Bodebek, Bandung Raya, Pantura Industri) */}
-            {WEST_JAVA_REGIONAL_CLUSTERS.slice(0, 3).map(cluster => {
-              const active = isClusterActive(cluster.regencies);
-              return (
+                {/* Reset button */}
                 <button
-                  key={cluster.id}
-                  onClick={() => handleApplyCluster(cluster.regencies)}
-                  className={`px-2.5 py-1 text-xs font-medium rounded-lg shrink-0 transition-all flex items-center gap-1 border ${
-                    active
-                      ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-bold shadow-md shadow-cyan-500/20'
-                      : 'bg-slate-950 text-slate-400 hover:text-cyan-300 hover:bg-slate-800 border-slate-800'
+                  onClick={() => {
+                    handleResetWestJava();
+                    setShowRegionDropdown(false);
+                  }}
+                  className={`w-full mb-2 p-2 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors ${
+                    selectedRegencies.length === 0 ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-950 text-slate-300 hover:bg-slate-800'
                   }`}
-                  title={`${cluster.name}: ${cluster.description}`}
                 >
-                  <span>{cluster.name.split(' ')[0]}</span>
+                  <span>Seluruh Jawa Barat</span>
+                  <span className="text-[10px] font-mono opacity-80">{spots.length} Titik</span>
                 </button>
-              );
-            })}
 
-            {/* Open Full 27 Regencies Selector Modal */}
-            <button
-              onClick={() => setShowAllRegionsModal(true)}
-              className="px-2.5 py-1 text-xs font-semibold rounded-lg shrink-0 transition-all flex items-center gap-1 bg-slate-950 hover:bg-slate-800 text-amber-400 border border-amber-400/30 hover:border-amber-400"
-            >
-              <span>+ 27 Kab/Kota</span>
-              <ChevronDown className="w-3 h-3" />
-            </button>
-
-            {/* Toggle Multi-Select Mode */}
-            <button
-              onClick={() => setIsMultiSelectMode(!isMultiSelectMode)}
-              className={`px-2 py-1 text-[11px] font-semibold rounded-lg shrink-0 transition-all flex items-center gap-1 border ${
-                isMultiSelectMode
-                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
-                  : 'bg-slate-950 text-slate-500 hover:text-slate-300 border-slate-800'
-              }`}
-              title={isMultiSelectMode ? 'Mode Multi-Pilih Aktif: Klik kota untuk menambah/mengurangi pilihan' : 'Mode Tunggal: Klik kota untuk langsung fokus ke kota tersebut'}
-            >
-              {isMultiSelectMode ? <CheckSquare className="w-3 h-3 text-emerald-400" /> : <Square className="w-3 h-3" />}
-              <span>Multi-Pilih</span>
-            </button>
-
-            {/* Clear / Reset Filter Button */}
-            {selectedRegencies.length > 0 && (
-              <button
-                onClick={handleResetWestJava}
-                className="px-2 py-1 text-[11px] font-bold rounded-lg shrink-0 transition-all flex items-center gap-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40"
-                title="Reset filter wilayah dan tampilkan seluruh Jawa Barat"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Reset</span>
-              </button>
+                {/* Top Metropolitan Hubs */}
+                <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase px-1 py-0.5">
+                    Hub Utama
+                  </div>
+                  {WEST_JAVA_REGENCIES.slice(0, 10).map(reg => {
+                    const count = spotCountByRegency[reg.name] || 0;
+                    const isSelected = selectedRegencies.includes(reg.name);
+                    return (
+                      <button
+                        key={reg.name}
+                        onClick={() => {
+                          handleSelectSingleRegency(reg.name);
+                          setShowRegionDropdown(false);
+                        }}
+                        className={`w-full p-1.5 px-2 rounded-lg text-xs flex items-center justify-between transition-colors ${
+                          isSelected ? 'bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                        }`}
+                      >
+                        <span className="truncate">{reg.name}</span>
+                        <span className="text-[10px] font-mono text-slate-400">{count} titik</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             )}
           </div>
 
-          {/* Row 3: Active Filter Status Strip (Visible when filtered) */}
-          {selectedRegencies.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5 p-2 bg-slate-950/90 backdrop-blur-md border border-amber-400/30 rounded-xl shadow-xl text-xs">
-              <span className="flex items-center gap-1 text-amber-400 font-bold shrink-0">
-                <MapPin className="w-3.5 h-3.5" />
-                Membatasi Wilayah:
-              </span>
+          {/* 3. Filter Format & Status Popover Button */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowFilterPopover(!showFilterPopover);
+                setShowRegionDropdown(false);
+                setShowLayerPanel(false);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-2 bg-slate-900/90 hover:bg-slate-800 border rounded-xl text-xs font-semibold shadow-xl backdrop-blur-md transition-all ${
+                selectedType !== 'Semua' || selectedStatus !== 'Semua'
+                  ? 'text-amber-400 border-amber-400/50 bg-amber-400/10'
+                  : 'text-slate-200 border-slate-800 hover:border-slate-700'
+              }`}
+            >
+              <Filter className="w-3.5 h-3.5 text-amber-400" />
+              <span>Filter</span>
+              {(selectedType !== 'Semua' || selectedStatus !== 'Semua') && (
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              )}
+              <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${showFilterPopover ? 'rotate-180' : ''}`} />
+            </button>
 
-              <div className="flex flex-wrap items-center gap-1">
-                {selectedRegencies.map(regName => {
-                  const count = spotCountByRegency[regName] || 0;
-                  return (
-                    <span
-                      key={regName}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-400/10 text-amber-300 border border-amber-400/30 rounded-md font-medium text-[11px]"
+            {/* Filter Dropdown Card */}
+            {showFilterPopover && (
+              <div className="absolute top-full left-0 mt-2 w-72 bg-slate-900/98 border border-slate-700/80 rounded-2xl shadow-2xl p-3.5 z-50 backdrop-blur-xl animate-in fade-in-50 duration-150 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Filter Billboard
+                  </span>
+                  {(selectedType !== 'Semua' || selectedStatus !== 'Semua') && (
+                    <button
+                      onClick={() => {
+                        setSelectedType('Semua');
+                        setSelectedStatus('Semua');
+                      }}
+                      className="text-[10px] text-amber-400 hover:underline"
                     >
-                      <span>{regName}</span>
-                      <span className="text-[10px] text-amber-400/80 font-mono">({count})</span>
-                      <button
-                        onClick={() => handleRemoveSingleRegency(regName)}
-                        className="text-amber-400 hover:text-white ml-0.5 rounded-full hover:bg-amber-400/20 p-0.5"
-                        title={`Hapus filter ${regName}`}
-                      >
-                        <X className="w-2.5 h-2.5" />
-                      </button>
-                    </span>
-                  );
-                })}
-              </div>
+                      Reset Filter
+                    </button>
+                  )}
+                </div>
 
-              <div className="ml-auto flex items-center gap-2 text-slate-400 text-[11px]">
-                <span className="font-semibold text-emerald-400 font-mono">
-                  {filteredSpots.length} Titik Ditampilkan
-                </span>
-                <button
-                  onClick={handleResetWestJava}
-                  className="text-slate-400 hover:text-white underline hover:no-underline text-[11px]"
-                >
-                  Hapus Filter Wilayah
-                </button>
-              </div>
-            </div>
-          )}
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Format Reklame:
+                  </label>
+                  <select
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    className="w-full px-2.5 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-amber-400"
+                  >
+                    <option value="Semua">Semua Format Reklame</option>
+                    <option value="LED Videotron">LED Videotron</option>
+                    <option value="Megatron">Megatron</option>
+                    <option value="Static Billboard">Static Billboard</option>
+                    <option value="JPO Pedestrian Bridge">JPO Bridge</option>
+                  </select>
+                </div>
 
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Status Okupansi:
+                  </label>
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    className="w-full px-2.5 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-amber-400"
+                  >
+                    <option value="Semua">Semua Status</option>
+                    <option value="Occupied">Terisi (Occupied)</option>
+                    <option value="Available">Tersedia (Available)</option>
+                    <option value="Reserved">Reserved</option>
+                  </select>
+                </div>
+
+                <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                  <span>Hasil Filter:</span>
+                  <span className="font-mono text-emerald-400 font-bold">{filteredSpots.length} Titik</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 4. Lapisan Peta & Heatmap Popover Button */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowLayerPanel(!showLayerPanel);
+                setShowRegionDropdown(false);
+                setShowFilterPopover(false);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-2 bg-slate-900/90 hover:bg-slate-800 border rounded-xl text-xs font-semibold shadow-xl backdrop-blur-md transition-all ${
+                showLayerPanel || isSatelliteActive || isTerrainActive || showTrafficDensityHeatmap || showCompetitorLayer
+                  ? 'text-amber-300 border-amber-400/50 bg-amber-400/10'
+                  : 'text-slate-200 border-slate-800 hover:border-slate-700'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5 text-amber-400" />
+              <span>Lapisan & Heatmap</span>
+              <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${showLayerPanel ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+
+          {/* Google Maps Official Verified Badge */}
+          <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-900/90 backdrop-blur-md border border-emerald-500/40 text-emerald-400 rounded-xl shadow-xl text-[11px] font-semibold">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span>Google Maps Resmi</span>
+          </div>
         </div>
 
-        {/* Floating Toolbar on Right Side */}
-        <div className="absolute top-3 right-4 z-20 flex flex-col gap-1.5 pointer-events-auto">
+        {/* Active Search Result Pill Banner (if searched) */}
+        {searchedLocation && (
+          <div className="absolute top-16 left-4 z-20 flex items-center gap-2 px-3 py-1.5 bg-blue-950/90 backdrop-blur-md border border-blue-500/50 rounded-xl shadow-xl text-xs text-blue-100 animate-in fade-in-50">
+            <Navigation className="w-3.5 h-3.5 text-blue-400" />
+            <span className="font-bold">{searchedLocation.queryName}</span>
+            <span className="text-[11px] text-blue-300 hidden sm:inline">({nearbySpotsForSearch.length} titik dalam 5 km)</span>
+            <button
+              onClick={() => setSearchedLocation(null)}
+              className="ml-1 text-slate-400 hover:text-white p-0.5 rounded hover:bg-blue-900/50 text-[10px]"
+            >
+              ✕ Hapus
+            </button>
+          </div>
+        )}
+
+        {/* Floating Utility Controls on Right Side (Clean, Minimalist) */}
+        <div className="absolute top-3.5 right-4 z-20 flex flex-col gap-1.5 pointer-events-auto bg-slate-900/90 backdrop-blur-md border border-slate-800/90 rounded-xl p-1 shadow-2xl">
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-2 bg-slate-900/95 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-800 rounded-lg shadow-xl transition-colors"
+            className="p-2 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition-colors"
             title={isFullscreen ? 'Keluar Layar Penuh' : 'Mode Layar Penuh'}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
 
-          {/* Google Live Traffic Toggle */}
           <button
-            onClick={handleToggleTraffic}
-            className={`p-2 border rounded-lg shadow-xl transition-all flex items-center justify-center ${
-              showTrafficLayer 
-                ? 'bg-red-500/25 border-red-500/70 text-red-400 ring-2 ring-red-500/40' 
-                : 'bg-slate-900/95 border-slate-800 text-slate-400 hover:text-white'
-            }`}
-            title={`Lapisan Lalu Lintas Real-Time: ${showTrafficLayer ? 'Aktif' : 'Nonaktif'}`}
+            onClick={handleResetWestJava}
+            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            title="Pusatkan Peta ke Jawa Barat"
           >
-            <Car className="w-4 h-4" />
+            <RotateCcw className="w-4 h-4" />
           </button>
 
-          {/* Competitor Presence Toggle */}
-          <button
-            onClick={handleToggleCompetitorLayer}
-            className={`p-2 border rounded-lg shadow-xl transition-all flex items-center justify-center ${
-              showCompetitorLayer 
-                ? 'bg-rose-500/25 border-rose-500/80 text-rose-300 ring-2 ring-rose-500/40' 
-                : 'bg-slate-900/95 border-slate-800 text-slate-400 hover:text-white'
-            }`}
-            title={`Toggle Layer Kehadiran Kompetitor & Untapped Spaces: ${showCompetitorLayer ? 'Aktif' : 'Nonaktif'}`}
-          >
-            <Swords className="w-4 h-4" />
-          </button>
-
-          {/* Marker Clustering Toggle */}
-          <button
-            onClick={handleToggleClustering}
-            className={`p-2 border rounded-lg shadow-xl transition-all flex items-center justify-center ${
-              isClusteringActive 
-                ? 'bg-amber-400/25 border-amber-400/80 text-amber-300 ring-2 ring-amber-400/40' 
-                : 'bg-slate-900/95 border-slate-800 text-slate-400 hover:text-white'
-            }`}
-            title={`Toggle Kluster Titik Reklame (Clustering): ${isClusteringActive ? 'Aktif' : 'Nonaktif'}`}
-          >
-            <Boxes className="w-4 h-4" />
-          </button>
-
-          {/* Quick View Toggle */}
-          <button
-            onClick={handleToggleQuickView}
-            className={`p-2 border rounded-lg shadow-xl transition-all flex items-center justify-center ${
-              showQuickView 
-                ? 'bg-amber-400/25 border-amber-400/80 text-amber-300 ring-2 ring-amber-400/40' 
-                : 'bg-slate-900/95 border-slate-800 text-slate-400 hover:text-white'
-            }`}
-            title={`Quick View (Top 5 Impresi di Viewport): ${showQuickView ? 'Aktif' : 'Nonaktif'}`}
-          >
-            <Zap className={`w-4 h-4 ${showQuickView ? 'fill-amber-400 text-amber-400' : ''}`} />
-          </button>
-
-          {/* Real-Time Traffic Density Heatmap Floating Toggle */}
-          <button
-            onClick={handleToggleTrafficDensityHeatmap}
-            className={`p-2 border rounded-lg shadow-xl transition-all flex items-center justify-center ${
-              showTrafficDensityHeatmap 
-                ? 'bg-gradient-to-tr from-amber-500 to-rose-500 text-slate-950 border-amber-300 font-bold ring-2 ring-amber-400/50 shadow-lg shadow-amber-400/30' 
-                : 'bg-slate-900/95 border-slate-800 text-slate-400 hover:text-white'
-            }`}
-            title={`Heatmap Konsentrasi Trafik Real-Time ('traffic_density'): ${showTrafficDensityHeatmap ? 'Aktif' : 'Nonaktif'}`}
-          >
-            <Activity className={`w-4 h-4 ${showTrafficDensityHeatmap ? 'text-slate-950 font-bold animate-pulse' : 'text-amber-400'}`} />
-          </button>
-
-          {/* KPI Heatmap Toggle */}
-          <button
-            onClick={handleToggleKpiHeatmap}
-            className={`p-2 border rounded-lg shadow-xl transition-all flex items-center justify-center ${
-              showKpiHeatmap 
-                ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold ring-2 ring-amber-400/40 shadow-lg shadow-amber-400/20' 
-                : 'bg-slate-900/95 border-slate-800 text-slate-400 hover:text-white'
-            }`}
-            title={`KPI Heatmap (Monthly ROI & Conversion Intensity): ${showKpiHeatmap ? 'Aktif' : 'Nonaktif'}`}
-          >
-            <Flame className={`w-4 h-4 ${showKpiHeatmap ? 'fill-slate-950 text-slate-950 animate-pulse' : 'text-amber-400'}`} />
-          </button>
-
-          {/* Satellite View Toggle */}
           <button
             onClick={handleToggleSatellite}
-            className={`p-2 border rounded-lg shadow-xl transition-all flex items-center justify-center ${
-              isSatelliteActive
-                ? 'bg-cyan-500/25 border-cyan-400 text-cyan-300 ring-2 ring-cyan-400/40'
-                : 'bg-slate-900/95 border-slate-800 text-slate-400 hover:text-white'
+            className={`p-2 rounded-lg transition-colors ${
+              isSatelliteActive ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
-            title={`View Satelit (Google Earth): ${isSatelliteActive ? 'Aktif' : 'Nonaktif'}`}
+            title="Toggle Citra Satelit Google Earth"
           >
             <Satellite className="w-4 h-4" />
           </button>
 
-          {/* Terrain View Toggle */}
           <button
-            onClick={handleToggleTerrain}
-            className={`p-2 border rounded-lg shadow-xl transition-all flex items-center justify-center ${
-              isTerrainActive
-                ? 'bg-amber-500/25 border-amber-400 text-amber-300 ring-2 ring-amber-400/40'
-                : 'bg-slate-900/95 border-slate-800 text-slate-400 hover:text-white'
+            onClick={handleToggleTraffic}
+            className={`p-2 rounded-lg transition-colors ${
+              showTrafficLayer ? 'bg-rose-500/20 text-rose-400' : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
-            title={`View Medan & Topografi: ${isTerrainActive ? 'Aktif' : 'Nonaktif'}`}
+            title="Toggle Lalu Lintas Google Maps"
           >
-            <Mountain className="w-4 h-4" />
+            <Car className="w-4 h-4" />
           </button>
 
-          {/* Hotspots Toggle */}
-          <button
-            onClick={() => setShowHotspotPins(!showHotspotPins)}
-            className={`p-2 border rounded-lg shadow-xl transition-colors flex items-center justify-center ${
-              showHotspotPins 
-                ? 'bg-amber-400/25 border-amber-400/70 text-amber-400' 
-                : 'bg-slate-900/95 border-slate-800 text-slate-400 hover:text-white'
-            }`}
-            title="Toggle Pin Hotspot Kemacetan Jawa Barat"
-          >
-            <Flame className="w-4 h-4" />
-          </button>
-
-          {/* Reach Circles Toggle */}
-          <button
-            onClick={() => setShowReachCircles(!showReachCircles)}
-            className={`p-2 border rounded-lg shadow-xl transition-colors ${
-              showReachCircles 
-                ? 'bg-cyan-400/25 border-cyan-400/60 text-cyan-400' 
-                : 'bg-slate-900/95 border-slate-800 text-slate-400 hover:text-white'
-            }`}
-            title="Toggle Lingkaran Jangkauan Kontak (Reach Circles)"
-          >
-            <Layers className="w-4 h-4" />
-          </button>
-
-          {/* Layer Panel Popover Trigger */}
           <button
             onClick={() => setShowLayerPanel(!showLayerPanel)}
-            className={`p-2 border rounded-lg shadow-xl transition-all flex items-center justify-center ${
-              showLayerPanel
-                ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold'
-                : 'bg-slate-900/95 border-slate-800 text-slate-300 hover:text-white'
+            className={`p-2 rounded-lg transition-colors ${
+              showLayerPanel ? 'bg-amber-400/20 text-amber-400' : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
-            title="Buka Pengaturan Layer Peta Google"
+            title="Pengaturan Layer & Heatmap Peta"
           >
-            <Sliders className="w-4 h-4" />
+            <Layers className="w-4 h-4" />
           </button>
         </div>
 
         {/* Floating Layer Settings Popover Card */}
         {showLayerPanel && (
-          <div className="absolute top-3 right-16 z-30 w-80 bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-150">
+          <div className="absolute top-16 right-4 z-40 w-84 sm:w-96 max-h-[85vh] overflow-y-auto bg-slate-900/98 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-150 scrollbar-thin">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
               <div className="flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-amber-400" />
@@ -2117,402 +1658,502 @@ export function GoogleMapViewer({
           </Map>
         </div>
 
-        {/* Bottom Floating Bar */}
-        <div className="absolute bottom-4 left-4 z-20 flex flex-wrap items-center gap-3">
-          {/* Traffic Legend */}
-          <div className="flex items-center gap-2 px-3 py-2 bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-lg text-xs shadow-2xl">
-            <span className="flex items-center gap-1 text-slate-400 font-medium">
-              <Car className="w-3.5 h-3.5 text-emerald-400" />
-              Lalu Lintas Google Maps:
-            </span>
-            <div className="flex items-center gap-1.5 text-[11px] font-mono">
-              <span className="text-emerald-400 font-bold">Lancar</span>
-              <span className="text-slate-600">·</span>
-              <span className="text-amber-400 font-bold">Padat</span>
-              <span className="text-slate-600">·</span>
-              <span className="text-red-500 font-bold">Macet Total</span>
-            </div>
-          </div>
+        {/* Bottom Modular Dock */}
+        <div className="absolute bottom-4 left-4 right-4 sm:right-20 z-20 pointer-events-none flex flex-wrap items-center justify-between gap-3">
+          {/* Left Island: Legend & Hub Chips */}
+          <div className="pointer-events-auto flex flex-wrap items-center gap-2">
+            {/* Legend Popover Button */}
+            <div className="relative">
+              <button
+                onClick={() => setShowLegendPopover(!showLegendPopover)}
+                className="flex items-center gap-1.5 px-3 py-2 bg-slate-900/95 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-xl text-xs font-semibold shadow-2xl backdrop-blur-md transition-all"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                </div>
+                <span>Legenda</span>
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${showLegendPopover ? 'rotate-180' : ''}`} />
+              </button>
 
-          {/* Billboard Types Legend */}
-          <div className="hidden md:flex items-center gap-3 px-3 py-2 bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-lg text-xs shadow-2xl">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
-              <span className="text-slate-300">LED Videotron</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
-              <span className="text-slate-300">Megatron</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-              <span className="text-slate-300">Static Billboard</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-              <span className="text-slate-300">JPO Bridge</span>
-            </div>
-            <div className="text-slate-500 font-mono text-[11px] border-l border-slate-800 pl-2">
-              {filteredSpots.length} Titik Ditampilkan
-            </div>
-          </div>
-
-          {/* Toggle Corridor Drawer Button */}
-          <button
-            onClick={() => setShowCorridorDrawer(!showCorridorDrawer)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all shadow-2xl border ${
-              showCorridorDrawer
-                ? 'bg-amber-400 text-slate-950 border-amber-300'
-                : 'bg-slate-900/90 text-amber-400 border-slate-800 hover:bg-slate-800'
-            }`}
-          >
-            <TrendingUp className="w-3.5 h-3.5" />
-            <span>Top Koridor Macet Jabar ({topCongestedHotspots.length})</span>
-          </button>
-
-          {/* Toggle Quick View Button */}
-          <button
-            onClick={() => {
-              setShowQuickView(!showQuickView);
-              if (!showQuickView) setIsQuickViewMinimized(false);
-            }}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all shadow-2xl border ${
-              showQuickView
-                ? 'bg-amber-400 text-slate-950 border-amber-300 ring-2 ring-amber-400/30'
-                : 'bg-slate-900/90 text-slate-300 border-slate-800 hover:text-white hover:bg-slate-800'
-            }`}
-            title="Tampilkan Quick View: 5 Billboard Impresi Tertinggi di Viewport"
-          >
-            <Zap className={`w-3.5 h-3.5 ${showQuickView ? 'text-slate-950 fill-slate-950' : 'text-amber-400'}`} />
-            <span>Quick View Top 5 ({top5ViewportSpots.length})</span>
-          </button>
-        </div>
-
-        {/* Quick View Floating Overlay: Top 5 Highest-Impression Billboards in Current Viewport */}
-        {showQuickView && (
-          isQuickViewMinimized ? (
-            <div 
-              onClick={() => setIsQuickViewMinimized(false)}
-              className="absolute bottom-16 right-4 sm:right-6 z-30 flex items-center gap-2 px-3 py-2 bg-slate-950/95 backdrop-blur-md border border-amber-500/60 rounded-xl shadow-2xl cursor-pointer hover:border-amber-400 transition-all text-xs font-semibold text-white group"
-            >
-              <div className="p-1 rounded-md bg-amber-400/20 text-amber-400 group-hover:scale-110 transition-transform">
-                <Zap className="w-3.5 h-3.5 fill-amber-400" />
-              </div>
-              <span>Quick View: Top 5 Impresi</span>
-              <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-amber-400 text-slate-950 font-bold">
-                {spotsInViewport.length} di Layar
-              </span>
-              <ChevronUp className="w-3.5 h-3.5 text-slate-400 ml-0.5" />
-            </div>
-          ) : (
-            <div className="absolute bottom-16 right-4 sm:right-6 z-30 w-80 sm:w-96 max-h-[75vh] flex flex-col bg-slate-950/95 backdrop-blur-xl border border-amber-500/50 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-150">
-              {/* Header */}
-              <div className="flex items-center justify-between p-3.5 bg-slate-900/90 border-b border-slate-800">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="p-1.5 rounded-lg bg-amber-400/20 text-amber-400 shrink-0">
-                    <Zap className="w-4 h-4 fill-amber-400" />
+              {showLegendPopover && (
+                <div className="absolute bottom-full left-0 mb-2 w-72 bg-slate-900/98 border border-slate-700/80 rounded-2xl shadow-2xl p-3.5 z-50 backdrop-blur-xl animate-in fade-in-50 duration-150 space-y-2.5">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Lalu Lintas Google Maps (Live)
                   </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                        Quick View: Top 5 Impresi
-                      </h4>
-                      <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                        Live Viewport
-                      </span>
+                  <div className="flex items-center justify-between text-xs font-medium">
+                    <span className="flex items-center gap-1.5 text-emerald-400">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" /> Lancar
+                    </span>
+                    <span className="flex items-center gap-1.5 text-amber-400">
+                      <span className="w-2 h-2 rounded-full bg-amber-400" /> Padat
+                    </span>
+                    <span className="flex items-center gap-1.5 text-rose-500">
+                      <span className="w-2 h-2 rounded-full bg-rose-500" /> Macet
+                    </span>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-800 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Format Reklame Fisik
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 text-xs text-slate-300">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" /> LED Videotron
                     </div>
-                    <p className="text-[10px] text-slate-400 truncate">
-                      {spotsInViewport.length} titik reklame terlihat di area peta saat ini
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-purple-500" /> Megatron
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Static Billboard
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> JPO Bridge
+                    </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={() => setIsQuickViewMinimized(true)}
-                    className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition-colors"
-                    title="Minimalkan Quick View"
-                  >
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setShowQuickView(false)}
-                    className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition-colors"
-                    title="Tutup Quick View"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Spot List */}
-              <div className="p-2.5 overflow-y-auto space-y-2 max-h-[50vh] scrollbar-thin">
-                {top5ViewportSpots.length === 0 ? (
-                  <div className="p-4 text-center text-xs text-slate-400">
-                    Tidak ada titik reklame yang berada di dalam area tampilan peta saat ini. Geser atau zoom out peta untuk melihat billboard terdekat.
-                  </div>
-                ) : (
-                  top5ViewportSpots.map((spot, index) => {
-                    const isSelected = selectedSpot?.id === spot.id;
-                    const rankColors = [
-                      'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black shadow-md', // #1
-                      'bg-gradient-to-r from-slate-200 to-slate-400 text-slate-950 font-black shadow-md', // #2
-                      'bg-gradient-to-r from-amber-700 to-amber-800 text-white font-black shadow-md',       // #3
-                      'bg-slate-800 text-slate-300 font-bold',                                             // #4
-                      'bg-slate-800 text-slate-300 font-bold'                                              // #5
-                    ];
-
-                    return (
-                      <div
-                        key={spot.id}
-                        onClick={() => {
-                          onSelectSpot(spot);
-                          setInfoWindowSpot(spot);
-                        }}
-                        className={`p-2.5 rounded-xl border transition-all cursor-pointer group ${
-                          isSelected
-                            ? 'bg-amber-500/15 border-amber-400 shadow-md ring-1 ring-amber-400/40'
-                            : 'bg-slate-900/80 border-slate-800/90 hover:border-slate-700 hover:bg-slate-900'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-start gap-2 min-w-0">
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 mt-0.5 ${rankColors[index]}`}>
-                              {index === 0 ? '👑' : index + 1}
-                            </div>
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="font-bold text-white text-xs truncate group-hover:text-amber-300 transition-colors">
-                                  {spot.name}
-                                </span>
-                                <span className="text-[10px] text-slate-400 font-mono">
-                                  {spot.code}
-                                </span>
-                              </div>
-                              <div className="text-[10px] text-slate-400 truncate mt-0.5">
-                                {spot.regency} · {spot.roadName}
-                              </div>
-                            </div>
-                          </div>
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onOpenDetailModal(spot);
-                            }}
-                            className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-white rounded text-[10px] font-semibold transition-colors shrink-0"
-                          >
-                            Detail
-                          </button>
-                        </div>
-
-                        {/* Impressions & Metrics Row */}
-                        <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono">
-                          <div className="flex items-center gap-1 text-slate-300">
-                            <span className="text-slate-500 text-[10px]">DGR:</span>
-                            <span className="font-bold text-amber-400">
-                              {spot.dailyGrossReach.toLocaleString('id-ID')}
-                            </span>
-                            <span className="text-[9px] text-slate-500">/hari</span>
-                          </div>
-
-                          <div className="flex items-center gap-1 text-slate-300">
-                            <span className="text-slate-500 text-[10px]">VAC:</span>
-                            <span className="font-bold text-emerald-400">
-                              {spot.vacDaily.toLocaleString('id-ID')}
-                            </span>
-                          </div>
-
-                          <span className={`px-1.5 py-0.2 rounded text-[9px] font-sans font-bold ${
-                            spot.occupancyStatus === 'Available'
-                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                              : 'bg-slate-800 text-slate-400'
-                          }`}>
-                            {spot.occupancyStatus === 'Available' ? 'Tersedia' : 'Terisi'}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              {/* Footer */}
-              {top5ViewportSpots.length > 0 && (
-                <div className="p-2.5 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between text-xs">
-                  <div className="text-[11px] text-slate-400">
-                    Total Top 5: <strong className="text-amber-400 font-mono">{top5TotalDailyImpressions.toLocaleString('id-ID')}</strong> DGR/hari
-                  </div>
-                  <button
-                    onClick={() => {
-                      if (top5ViewportSpots.length > 0) {
-                        onSelectSpot(top5ViewportSpots[0]);
-                        setInfoWindowSpot(top5ViewportSpots[0]);
-                      }
-                    }}
-                    className="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-lg text-[10px] transition-colors shadow-md"
-                  >
-                    Lihat #1 Teratas
-                  </button>
                 </div>
               )}
             </div>
-          )
-        )}
 
-        {/* Top Congested Corridors Drawer (Collapsible) */}
-        {showCorridorDrawer && (
-          <div className="absolute bottom-16 left-4 z-30 w-80 sm:w-96 max-h-96 overflow-y-auto bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-xl shadow-2xl p-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
-              <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-red-500" />
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider">Koridor Trafik Paling Padat</h4>
-              </div>
+            {/* Quick Hub Filter Chips */}
+            <div className="hidden sm:flex items-center gap-1 p-1 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl text-xs shadow-2xl">
               <button
-                onClick={() => setShowCorridorDrawer(false)}
-                className="text-slate-400 hover:text-white p-1 rounded text-xs font-bold"
+                onClick={handleResetWestJava}
+                className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
+                  selectedRegencies.length === 0 ? 'bg-amber-400 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'
+                }`}
               >
-                ✕
+                Semua ({spots.length})
               </button>
-            </div>
-
-            <div className="space-y-2">
-              {topCongestedHotspots.map((hotspot, idx) => {
-                const isSelected = activeHotspot?.id === hotspot.id;
-                const nearby = findNearbySpotsForHotspot(hotspot, spots, 2.5);
-
+              {['Kota Bandung', 'Kota Bekasi', 'Kota Bogor', 'Kota Depok'].map(city => {
+                const isSelected = selectedRegencies.length === 1 && selectedRegencies[0] === city;
+                const count = spotCountByRegency[city] || 0;
+                const shortName = city.replace('Kota ', '');
                 return (
-                  <div
-                    key={hotspot.id}
-                    onClick={() => {
-                      setActiveHotspot(hotspot);
-                      if (nearby.length > 0) {
-                        onSelectSpot(nearby[0].spot);
-                      }
-                    }}
-                    className={`p-2.5 rounded-lg border cursor-pointer transition-all ${
-                      isSelected
-                        ? 'bg-amber-400/10 border-amber-400/50'
-                        : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'
+                  <button
+                    key={city}
+                    onClick={() => handleSelectSingleRegency(city)}
+                    className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
+                      isSelected ? 'bg-amber-400 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-mono font-bold text-slate-400">#{idx + 1}</span>
-                          <span className="text-xs font-bold text-slate-100">{hotspot.name}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-400 mt-0.5">{hotspot.regency} · {hotspot.roadName}</p>
-                      </div>
-                      <span className={`px-2 py-0.5 text-[9px] font-bold rounded shrink-0 ${
-                        hotspot.congestionLevel === 'Macet Total'
-                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                          : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                      }`}>
-                        {hotspot.congestionLevel}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-900 text-[10px] text-slate-400">
-                      <span className="font-mono text-amber-400 font-bold">
-                        {hotspot.avgVolumePerHour.toLocaleString('id-ID')} kend/jam
-                      </span>
-                      <span className="text-emerald-400 font-medium">
-                        {nearby.length} Billboard dalam radius
-                      </span>
-                    </div>
-                  </div>
+                    {shortName} ({count})
+                  </button>
                 );
               })}
             </div>
+
+            {/* Active Count Pill */}
+            <div className="hidden lg:flex items-center px-3 py-2 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl text-xs text-slate-400 font-mono shadow-2xl">
+              <span className="text-emerald-400 font-bold mr-1.5">{filteredSpots.length}</span> Titik Ditampilkan
+            </div>
           </div>
+
+          {/* Right Island: Quick View & Corridor Toggles */}
+          <div className="pointer-events-auto flex items-center gap-2">
+            {/* Top Koridor Macet Button */}
+            <button
+              onClick={() => {
+                if (showCorridorDrawer && activeWidgetTab === 'corridor') {
+                  setShowCorridorDrawer(false);
+                } else {
+                  setShowCorridorDrawer(true);
+                  setActiveWidgetTab('corridor');
+                }
+              }}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all shadow-2xl border backdrop-blur-md ${
+                showCorridorDrawer && activeWidgetTab === 'corridor'
+                  ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold'
+                  : 'bg-slate-900/90 text-amber-400 border-slate-800 hover:bg-slate-800'
+              }`}
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Koridor Macet</span>
+              <span className="font-mono">({topCongestedHotspots.length})</span>
+            </button>
+
+            {/* Quick View Top 5 Impresi Button */}
+            <button
+              onClick={() => {
+                if (showQuickView && activeWidgetTab === 'quickview') {
+                  setShowQuickView(false);
+                } else {
+                  setShowQuickView(true);
+                  setActiveWidgetTab('quickview');
+                }
+              }}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-2xl border backdrop-blur-md ${
+                showQuickView && activeWidgetTab === 'quickview'
+                  ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-amber-400/20 ring-2 ring-amber-400/30'
+                  : 'bg-slate-900/90 text-slate-200 border-slate-800 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              <Zap className={`w-3.5 h-3.5 ${showQuickView && activeWidgetTab === 'quickview' ? 'fill-slate-950 text-slate-950' : 'text-amber-400 fill-amber-400'}`} />
+              <span>Top 5 Impresi</span>
+            </button>
+          </div>
+        </div>
+        {/* End of [grid-area:map-viewport] */}
+        </div>
+
+        {/* Dedicated Modular Data Widget Sidebar (CSS Grid Area: widget-panel) */}
+        {hasActiveWidget && (
+          <aside className="[grid-area:widget-panel] fixed inset-x-0 bottom-0 max-h-[82vh] z-40 lg:static lg:inset-auto lg:max-h-none lg:h-full lg:w-full bg-slate-900/98 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom lg:slide-in-from-right duration-200">
+            {/* Widget Tabs & Navigation Header */}
+            <div className="flex items-center justify-between p-3.5 bg-slate-950/80 border-b border-slate-800 shrink-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {selectedSpot && (
+                  <button
+                    onClick={() => setActiveWidgetTab('spot')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      activeWidgetTab === 'spot'
+                        ? 'bg-amber-400 text-slate-950 font-bold shadow-md shadow-amber-400/20'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    }`}
+                  >
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>Detail Titik</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    setShowQuickView(true);
+                    setActiveWidgetTab('quickview');
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    activeWidgetTab === 'quickview'
+                      ? 'bg-amber-400 text-slate-950 font-bold shadow-md shadow-amber-400/20'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>Top 5 Impresi</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowCorridorDrawer(true);
+                    setActiveWidgetTab('corridor');
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    activeWidgetTab === 'corridor'
+                      ? 'bg-amber-400 text-slate-950 font-bold shadow-md shadow-amber-400/20'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>Koridor ({topCongestedHotspots.length})</span>
+                </button>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => {
+                  onSelectSpot(null);
+                  setShowQuickView(false);
+                  setShowCorridorDrawer(false);
+                }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors ml-2"
+                title="Tutup Panel Widget"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Widget Content Body */}
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
+              {/* Tab 1: Selected Spot Detail View */}
+              {activeWidgetTab === 'spot' && selectedSpot && (
+                <div className="flex flex-col h-full space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                        {selectedSpot.code}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        selectedSpot.occupancyStatus === 'Available'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                      }`}>
+                        {selectedSpot.occupancyStatus === 'Available' ? 'Tersedia' : 'Terisi'}
+                      </span>
+                    </div>
+                    <h3 className="text-base font-bold text-white mt-1 leading-snug">
+                      {selectedSpot.name}
+                    </h3>
+                  </div>
+
+                  {/* Location Info */}
+                  <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1 text-xs">
+                    <span className="text-slate-400 block text-[11px]">Koridor Lokasi & Tipe Jalan</span>
+                    <p className="text-slate-200 font-semibold">{selectedSpot.roadName}</p>
+                    <div className="flex items-center gap-2 text-slate-400 pt-1">
+                      <span className="text-amber-400 font-medium">{selectedSpot.regency}</span>
+                      <span>·</span>
+                      <span>Kec. {selectedSpot.district}</span>
+                    </div>
+                  </div>
+
+                  {/* GPS & Direction */}
+                  <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl text-xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Koordinat GPS WGS84:</span>
+                      <span className="font-mono text-amber-400 font-semibold">
+                        {selectedSpot.coordinates.lat.toFixed(4)}, {selectedSpot.coordinates.lng.toFixed(4)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-400">
+                      <span>Arah Pandang:</span>
+                      <span className="text-slate-200 font-medium">{selectedSpot.facingDirection}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-400">
+                      <span>Ukuran & Format:</span>
+                      <span className="text-slate-200 font-medium">
+                        {selectedSpot.dimensions.width}m × {selectedSpot.dimensions.height}m · {selectedSpot.type}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Metric Snapshot Grid */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl">
+                      <span className="text-slate-400 text-[11px] block">Gross Reach (DGR)</span>
+                      <span className="text-lg font-bold font-mono text-white tabular-nums">
+                        {selectedSpot.dailyGrossReach.toLocaleString('id-ID')}
+                      </span>
+                      <span className="text-[10px] text-slate-500 block">kontak / hari</span>
+                    </div>
+
+                    <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl">
+                      <span className="text-slate-400 text-[11px] block">Visibility Adjusted (VAC)</span>
+                      <span className="text-lg font-bold font-mono text-emerald-400 tabular-nums">
+                        {selectedSpot.vacDaily.toLocaleString('id-ID')}
+                      </span>
+                      <span className="text-[10px] text-slate-500 block">kontak tertarget</span>
+                    </div>
+
+                    <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl">
+                      <span className="text-slate-400 text-[11px] block">Rata-rata Dwell Time</span>
+                      <span className="text-lg font-bold font-mono text-amber-400 tabular-nums">
+                        {selectedSpot.avgDwellTimeSec}s
+                      </span>
+                      <span className="text-[10px] text-slate-500 block">laju {selectedSpot.avgSpeedKmh} km/jam</span>
+                    </div>
+
+                    <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl">
+                      <span className="text-slate-400 text-[11px] block">Indeks Efektivitas</span>
+                      <span className="text-lg font-bold font-mono text-cyan-400 tabular-nums">
+                        {selectedSpot.effectivenessScore} / 100
+                      </span>
+                      <span className="text-[10px] text-slate-500 block">skor visibilitas</span>
+                    </div>
+                  </div>
+
+                  {/* Open Detail Modal CTA */}
+                  <div className="pt-2 mt-auto">
+                    <button
+                      onClick={() => onOpenDetailModal(selectedSpot)}
+                      className="w-full py-2.5 px-4 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl transition-colors shadow-lg shadow-amber-400/20 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>Buka Analisis Lokasi Lengkap</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 2: Top 5 Impresi Viewport View */}
+              {activeWidgetTab === 'quickview' && (
+                <div className="space-y-3">
+                  <div className="p-3 bg-amber-400/10 border border-amber-400/20 rounded-xl text-xs">
+                    <div className="flex items-center gap-2 font-bold text-amber-400 mb-0.5">
+                      <Zap className="w-4 h-4 fill-amber-400" />
+                      <span>Top 5 Impresi (Viewport Saat Ini)</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      {spotsInViewport.length} billboard terdeteksi di area koordinat layar peta
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    {top5ViewportSpots.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-slate-400 bg-slate-950/60 rounded-xl border border-slate-800">
+                        Tidak ada titik reklame di area viewport peta saat ini. Geser atau zoom out peta untuk melihat billboard terdekat.
+                      </div>
+                    ) : (
+                      top5ViewportSpots.map((spot, index) => {
+                        const isSelected = selectedSpot?.id === spot.id;
+                        const rankColors = [
+                          'bg-amber-400 text-slate-950 font-black',
+                          'bg-slate-300 text-slate-950 font-black',
+                          'bg-amber-700 text-white font-black',
+                          'bg-slate-800 text-slate-300 font-bold',
+                          'bg-slate-800 text-slate-300 font-bold'
+                        ];
+
+                        return (
+                          <div
+                            key={spot.id}
+                            onClick={() => {
+                              onSelectSpot(spot);
+                              setInfoWindowSpot(spot);
+                            }}
+                            className={`p-3 rounded-xl border transition-all cursor-pointer group ${
+                              isSelected
+                                ? 'bg-amber-500/15 border-amber-400 shadow-md ring-1 ring-amber-400/40'
+                                : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 hover:bg-slate-950'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex items-start gap-2.5 min-w-0">
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 mt-0.5 ${rankColors[index]}`}>
+                                  {index === 0 ? '👑' : index + 1}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="font-bold text-white text-xs truncate group-hover:text-amber-300 transition-colors">
+                                      {spot.name}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-mono">
+                                      {spot.code}
+                                    </span>
+                                  </div>
+                                  <div className="text-[11px] text-slate-400 truncate mt-0.5">
+                                    {spot.regency} · {spot.roadName}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onOpenDetailModal(spot);
+                                }}
+                                className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-white rounded text-[10px] font-semibold transition-colors shrink-0"
+                              >
+                                Detail
+                              </button>
+                            </div>
+
+                            <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono">
+                              <div className="flex items-center gap-1 text-slate-300">
+                                <span className="text-slate-500 text-[10px]">DGR:</span>
+                                <span className="font-bold text-amber-400">
+                                  {spot.dailyGrossReach.toLocaleString('id-ID')}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1 text-slate-300">
+                                <span className="text-slate-500 text-[10px]">VAC:</span>
+                                <span className="font-bold text-emerald-400">
+                                  {spot.vacDaily.toLocaleString('id-ID')}
+                                </span>
+                              </div>
+
+                              <span className={`px-1.5 py-0.2 rounded text-[9px] font-sans font-bold ${
+                                spot.occupancyStatus === 'Available'
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                  : 'bg-slate-800 text-slate-400'
+                              }`}>
+                                {spot.occupancyStatus === 'Available' ? 'Tersedia' : 'Terisi'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {top5ViewportSpots.length > 0 && (
+                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
+                      <span className="text-slate-400 text-[11px]">
+                        Total DGR Top 5: <strong className="text-amber-400 font-mono">{top5TotalDailyImpressions.toLocaleString('id-ID')}</strong>
+                      </span>
+                      <button
+                        onClick={() => {
+                          if (top5ViewportSpots.length > 0) {
+                            onSelectSpot(top5ViewportSpots[0]);
+                            setInfoWindowSpot(top5ViewportSpots[0]);
+                          }
+                        }}
+                        className="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-lg text-[10px] transition-colors"
+                      >
+                        Pilih #1
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 3: Koridor Macet View */}
+              {activeWidgetTab === 'corridor' && (
+                <div className="space-y-3">
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs">
+                    <div className="flex items-center gap-2 font-bold text-red-400 mb-0.5">
+                      <Flame className="w-4 h-4 text-red-500" />
+                      <span>Koridor Trafik Paling Padat</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Peringkat jalan dengan konsentrasi kepadatan lalu lintas tertinggi di Jawa Barat
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    {topCongestedHotspots.map((hotspot, idx) => {
+                      const isSelected = activeHotspot?.id === hotspot.id;
+                      const nearby = findNearbySpotsForHotspot(hotspot, spots, 2.5);
+
+                      return (
+                        <div
+                          key={hotspot.id}
+                          onClick={() => {
+                            setActiveHotspot(hotspot);
+                            if (nearby.length > 0) {
+                              onSelectSpot(nearby[0].spot);
+                              setInfoWindowSpot(nearby[0].spot);
+                            }
+                          }}
+                          className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-amber-400/10 border-amber-400/50 shadow-md ring-1 ring-amber-400/30'
+                              : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 hover:bg-slate-950'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-mono font-bold text-slate-400">#{idx + 1}</span>
+                                <span className="text-xs font-bold text-slate-100">{hotspot.name}</span>
+                              </div>
+                              <p className="text-[11px] text-slate-400 mt-0.5">{hotspot.regency} · {hotspot.roadName}</p>
+                            </div>
+                            <span className={`px-2 py-0.5 text-[9px] font-bold rounded shrink-0 ${
+                              hotspot.congestionLevel === 'Macet Total'
+                                ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            }`}>
+                              {hotspot.congestionLevel}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-900 text-[10px] text-slate-400">
+                            <span className="font-mono text-amber-400 font-bold">
+                              {hotspot.avgVolumePerHour.toLocaleString('id-ID')} kend/jam
+                            </span>
+                            <span className="text-emerald-400 font-medium">
+                              {nearby.length} Billboard dalam radius 2.5km
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </aside>
         )}
-
-        {/* Selected Spot Details Sidebar Drawer */}
-        {selectedSpot ? (
-          <div className="absolute right-0 top-0 bottom-0 w-full sm:w-96 z-30 bg-slate-900/95 backdrop-blur-xl border-l border-slate-800 flex flex-col shadow-2xl p-5 overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div>
-                <span className="text-xs font-mono text-amber-400 uppercase tracking-wider">{selectedSpot.code}</span>
-                <h3 className="text-base font-bold text-white mt-0.5">{selectedSpot.name}</h3>
-              </div>
-              <button
-                onClick={() => onSelectSpot(null)}
-                className="text-slate-400 hover:text-white p-1 text-sm font-semibold rounded hover:bg-slate-800"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="py-4 space-y-4 text-xs">
-              <div>
-                <span className="text-slate-400 block mb-1">Koridor Lokasi & Tipe Jalan</span>
-                <p className="text-slate-200 font-semibold">{selectedSpot.roadName}</p>
-                <div className="flex items-center gap-2 text-slate-400 mt-1">
-                  <span className="text-amber-400 font-medium">{selectedSpot.regency}</span>
-                  <span>·</span>
-                  <span>Kec. {selectedSpot.district}</span>
-                </div>
-              </div>
-
-              <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Koordinat GPS WGS84:</span>
-                  <span className="font-mono text-amber-400 font-semibold">
-                    {selectedSpot.coordinates.lat.toFixed(4)}, {selectedSpot.coordinates.lng.toFixed(4)}
-                  </span>
-                </div>
-                <div className="text-slate-400 mt-1">
-                  Arah Pandang: <span className="text-slate-200 font-medium">{selectedSpot.facingDirection}</span>
-                </div>
-              </div>
-
-              {/* Metric Snapshot */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-lg">
-                  <span className="text-slate-400 text-[11px] block">Gross Reach (DGR)</span>
-                  <span className="text-lg font-bold font-mono text-white tabular-nums">
-                    {selectedSpot.dailyGrossReach.toLocaleString('id-ID')}
-                  </span>
-                  <span className="text-[10px] text-slate-500 block">kontak / hari</span>
-                </div>
-
-                <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-lg">
-                  <span className="text-slate-400 text-[11px] block">Visibility Adjusted (VAC)</span>
-                  <span className="text-lg font-bold font-mono text-emerald-400 tabular-nums">
-                    {selectedSpot.vacDaily.toLocaleString('id-ID')}
-                  </span>
-                  <span className="text-[10px] text-slate-500 block">kontak tertarget</span>
-                </div>
-
-                <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-lg">
-                  <span className="text-slate-400 text-[11px] block">Rata-rata Dwell Time</span>
-                  <span className="text-lg font-bold font-mono text-amber-400 tabular-nums">
-                    {selectedSpot.avgDwellTimeSec} detik
-                  </span>
-                  <span className="text-[10px] text-slate-500 block">kecepatan {selectedSpot.avgSpeedKmh} km/jam</span>
-                </div>
-
-                <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-lg">
-                  <span className="text-slate-400 text-[11px] block">Indeks Efektivitas</span>
-                  <span className="text-lg font-bold font-mono text-cyan-400 tabular-nums">
-                    {selectedSpot.effectivenessScore} / 100
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-auto pt-3 border-t border-slate-800">
-              <button
-                onClick={() => onOpenDetailModal(selectedSpot)}
-                className="w-full py-2.5 px-4 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-lg transition-colors shadow-lg flex items-center justify-center gap-2"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span>Buka Analisis Lokasi Lengkap</span>
-              </button>
-            </div>
-          </div>
-        ) : null}
 
         {/* Full 27 West Java Regencies Filter Modal */}
         {showAllRegionsModal && (

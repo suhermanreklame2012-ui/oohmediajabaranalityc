@@ -126,6 +126,52 @@ try {
         exit;
     }
 
+    if ($method === 'PUT') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $id = $_GET['id'] ?? ($input['id'] ?? null);
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'ID titik diperlukan']);
+            exit;
+        }
+
+        $fields = [];
+        $params = [];
+        if (isset($input['name'])) { $fields[] = "name = ?"; $params[] = $input['name']; }
+        if (isset($input['occupancyStatus'])) { $fields[] = "occupancy_status = ?"; $params[] = $input['occupancyStatus']; }
+        if (isset($input['currentBrand'])) { $fields[] = "current_brand = ?"; $params[] = $input['currentBrand']; }
+        if (isset($input['ratePerMonthIdr'])) { $fields[] = "rate_per_month_idr = ?"; $params[] = $input['ratePerMonthIdr']; }
+        if (isset($input['dailyGrossReach'])) { $fields[] = "daily_gross_reach = ?"; $params[] = $input['dailyGrossReach']; }
+        if (isset($input['vacDaily'])) { $fields[] = "vac_daily = ?"; $params[] = $input['vacDaily']; }
+        if (isset($input['effectivenessScore'])) { $fields[] = "effectiveness_score = ?"; $params[] = $input['effectivenessScore']; }
+        
+        if (empty($fields)) {
+            echo json_encode(['success' => true, 'message' => 'Tidak ada perubahan']);
+            exit;
+        }
+
+        $params[] = $id;
+        $sql = "UPDATE billboard_spots SET " . implode(", ", $fields) . " WHERE spot_id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+
+        echo json_encode(['success' => true, 'message' => 'Titik berhasil diperbarui', 'id' => $id]);
+        exit;
+    }
+
+    if ($method === 'DELETE') {
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'ID titik diperlukan']);
+            exit;
+        }
+        $stmt = $pdo->prepare("DELETE FROM billboard_spots WHERE spot_id = ?");
+        $stmt->execute([$id]);
+        echo json_encode(['success' => true, 'message' => 'Titik berhasil dihapus', 'id' => $id]);
+        exit;
+    }
+
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);

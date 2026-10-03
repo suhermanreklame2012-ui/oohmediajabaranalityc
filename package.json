@@ -7,6 +7,7 @@
     "dev": "tsx server.ts",
     "start": "node server.ts",
     "build": "vite build",
+    "migrated": "tsx scripts/generatePhpMysql.ts",
     "migrate:php": "tsx scripts/migratePhp.ts",
     "migrate:all": "npm run build && tsx scripts/migratePhp.ts",
     "preview": "vite preview",

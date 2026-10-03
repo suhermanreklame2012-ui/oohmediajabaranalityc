@@ -15,22 +15,23 @@ header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: SAMEORIGIN");
 header("X-XSS-Protection: 1; mode=block");
 
-// Find current CSS & JS bundle in assets/
+// Find latest CSS & JS bundle in assets/ by filemtime descending
 $assetsDir = __DIR__ . '/assets';
-$cssFiles = glob($assetsDir . '/*.css');
-$jsFiles = glob($assetsDir . '/*.js');
+$cssFiles = glob($assetsDir . '/*.css') ?: [];
+$jsFiles = glob($assetsDir . '/*.js') ?: [];
 
-$cssTag = '';
 if (!empty($cssFiles)) {
-    $mainCss = basename(end($cssFiles));
-    $cssTag = '<link rel="stylesheet" crossorigin href="' . $basePath . 'assets/' . $mainCss . '">';
+    usort($cssFiles, fn($a, $b) => filemtime($b) <=> filemtime($a));
+}
+if (!empty($jsFiles)) {
+    usort($jsFiles, fn($a, $b) => filemtime($b) <=> filemtime($a));
 }
 
-$jsTag = '';
-if (!empty($jsFiles)) {
-    $mainJs = basename(end($jsFiles));
-    $jsTag = '<script type="module" crossorigin src="' . $basePath . 'assets/' . $mainJs . '"></script>';
-}
+$mainCss = !empty($cssFiles) ? basename($cssFiles[0]) : 'index-BuPQixmS.css';
+$mainJs = !empty($jsFiles) ? basename($jsFiles[0]) : 'index-BOLx_uee.js';
+
+$cssTag = !empty($mainCss) ? '<link rel="stylesheet" crossorigin href="' . $basePath . 'assets/' . $mainCss . '">' : '';
+$jsTag = !empty($mainJs) ? '<script type="module" crossorigin src="' . $basePath . 'assets/' . $mainJs . '"></script>' : '';
 ?>
 <!doctype html>
 <html lang="id">
@@ -38,7 +39,7 @@ if (!empty($jsFiles)) {
     <meta charset="UTF-8" />
     <base href="<?= htmlspecialchars($basePath) ?>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JabarOOH - Dashboard Performa Reklame Jawa Barat (Localhost & Production)</title>
+    <title>JabarOOH - Dashboard Performa Reklame Jawa Barat</title>
     <meta name="description" content="Dashboard Analisis Performa & Pengukuran Media Luar Ruang (OOH/DOOH) Jawa Barat" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>" />
     <?= $cssTag ?>

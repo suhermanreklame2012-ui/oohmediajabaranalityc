@@ -43,33 +43,44 @@ function getDbConnection(): PDO {
             $pdo = new PDO($dsn, MYSQL_USER, MYSQL_PASSWORD, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_TIMEOUT => 2
+                PDO::ATTR_EMULATE_PREPARES => false
             ]);
             return $pdo;
         } catch (Exception $e) {
-            error_log("Koneksi MySQL gagal, beralih otomatis ke SQLite lokal: " . $e->getMessage());
-            // Fallback ke SQLite
+            error_log("Koneksi MySQL gagal: " . $e->getMessage());
         }
     }
 
-    // Default Fallback: SQLite 3
-    $sqliteFile = SQLITE_PATH;
-    $isNew = !file_exists($sqliteFile);
-    
-    $pdo = new PDO("sqlite:" . $sqliteFile, null, null, [
+    // Default Fallback: SQLite 3 (jika pdo_sqlite aktif)
+    if (extension_loaded('pdo_sqlite')) {
+        try {
+            $sqliteFile = SQLITE_PATH;
+            $isNew = !file_exists($sqliteFile);
+            
+            $pdo = new PDO("sqlite:" . $sqliteFile, null, null, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            ]);
+            
+            $pdo->exec("PRAGMA journal_mode = WAL;");
+            $pdo->exec("PRAGMA synchronous = NORMAL;");
+
+            if ($isNew) {
+                initSqliteSchema($pdo);
+            }
+
+            return $pdo;
+        } catch (Exception $e) {
+            error_log("Fallback SQLite gagal: " . $e->getMessage());
+        }
+    }
+
+    // Jika driver MySQL gagal dan SQLite tidak tersedia, coba koneksi MySQL default agar error jelas
+    $dsn = "mysql:host=" . MYSQL_HOST . ";port=" . MYSQL_PORT . ";dbname=" . MYSQL_DATABASE . ";charset=utf8mb4";
+    return new PDO($dsn, MYSQL_USER, MYSQL_PASSWORD, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
-    
-    // Aktifkan mode WAL untuk performa tinggi
-    $pdo->exec("PRAGMA journal_mode = WAL;");
-    $pdo->exec("PRAGMA synchronous = NORMAL;");
-
-    if ($isNew) {
-        initSqliteSchema($pdo);
-    }
-
-    return $pdo;
 }
 
 function initSqliteSchema(PDO $pdo): void {

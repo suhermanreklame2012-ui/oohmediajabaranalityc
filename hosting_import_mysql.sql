@@ -1,7 +1,10 @@
 -- ============================================================================
--- JABAROOH ENTERPRISE - SKEMA BASIS DATA UNIVERSAL (SQLITE & MYSQL)
+-- JABAROOH ENTERPRISE - SKEMA BASIS DATA RESILIENT (MYSQL 8.0 & MARIADB)
 -- Pengelola: Suherman Reklame (suherman.reklame2012@gmail.com / 087822248975)
+-- Target Host: oohmediabandung.com
 -- ============================================================================
+
+SET NAMES utf8mb4;
 
 -- Tabel Pengguna & Hak Akses Keamanan
 CREATE TABLE IF NOT EXISTS user_accounts (
@@ -15,10 +18,10 @@ CREATE TABLE IF NOT EXISTS user_accounts (
   password_hash VARCHAR(255) NOT NULL,
   security_pin VARCHAR(20) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Masukkan Akun Super Administrator Resmi
-INSERT OR IGNORE INTO user_accounts (id, username, email, full_name, phone_number, role, agency_or_company, password_hash, security_pin)
+INSERT IGNORE INTO user_accounts (id, username, email, full_name, phone_number, role, agency_or_company, password_hash, security_pin)
 VALUES ('usr_suherman', 'suherman', 'suherman.reklame2012@gmail.com', 'Suherman Reklame', '087822248975', 'Super Admin', 'Pengelola Solusi Reklame OOH & DOOH Jawa Barat', 'AdminOOH@2026', '889900');
 
 -- Tabel Titik Reklame Billboard & DOOH
@@ -56,7 +59,7 @@ CREATE TABLE IF NOT EXISTS billboard_spots (
   facing_direction VARCHAR(50) DEFAULT 'Arah Pusat Kota',
   target_demographics TEXT DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tabel Pipeline Leads CRM
 CREATE TABLE IF NOT EXISTS crm_leads (
@@ -71,16 +74,16 @@ CREATE TABLE IF NOT EXISTS crm_leads (
   status VARCHAR(50) DEFAULT 'Baru',
   notes TEXT DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tabel Pengaturan Sistem
 CREATE TABLE IF NOT EXISTS system_config (
   config_key VARCHAR(100) PRIMARY KEY,
   config_value TEXT NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT OR IGNORE INTO system_config (config_key, config_value)
+INSERT IGNORE INTO system_config (config_key, config_value)
 VALUES ('app_version', '3.5.0'),
        ('owner_name', 'Suherman Reklame'),
        ('contact_phone', '087822248975'),
@@ -89,7 +92,7 @@ VALUES ('app_version', '3.5.0'),
 -- ----------------------------------------------------------------------------
 -- Data Inventaris 77 Titik Reklame Jawa Barat
 -- ----------------------------------------------------------------------------
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -105,7 +108,7 @@ INSERT OR IGNORE INTO billboard_spots (
   165000000, 22400, 'P6 Ultra-Bright SMD LED Full RGB', 'Arus Sudirman & Gatot Subroto menuju Alun-Alun Bandung',
   'Urban Professionals, Eksekutif Finansial, Wisatawan Domestik'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -121,7 +124,7 @@ INSERT OR IGNORE INTO billboard_spots (
   195000000, 22800, 'P8 Outdoor High-Contrast Videotron', 'Keluar Gerbang Tol Pasteur menuju Jl. Layang Pasupati & Gasibu',
   'Wisatawan Jakarta-Bandung, Pebisnis Komuter, Pemilik Mobil Pribadi'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -137,7 +140,7 @@ INSERT OR IGNORE INTO billboard_spots (
   120000000, 22400, 'P6 SMD LED 6500 nits', 'Arus Dago Atas & Cikapayang Flyover',
   'Gen-Z, Mahasiswa ITB/UNPAD, Komunitas Gaya Hidup & Kafe'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -153,7 +156,7 @@ INSERT OR IGNORE INTO billboard_spots (
   65000000, 15200, 'Frontlite High-Lumen Metal Halide 8x400W', 'Dua arah Jl. Riau (Factory Outlet & Heritage Zone)',
   'Shoppers, Wisata Belanja, Family Dining'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -169,7 +172,7 @@ INSERT OR IGNORE INTO billboard_spots (
   85000000, 14500, 'Backlite LED Uniform Grid 120W x 10', 'Keluar Exit Tol Buah Batu menuju Pusat Kota & Dayeuhkolot',
   'Komuter Bandung Selatan, Mahasiswa Telkom University, Residensial'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -185,7 +188,7 @@ INSERT OR IGNORE INTO billboard_spots (
   135000000, 27700, 'P4 Indoor/Outdoor High Definition LED', 'Arus Stasiun Bandung menuju PVJ & Sukajadi',
   'Middle-Up Urbanites, Mall Visitors, Gadget Enthusiasts'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -201,7 +204,7 @@ INSERT OR IGNORE INTO billboard_spots (
   110000000, 16000, 'LED Strip Contour + Floodlight 500W', 'Arus Timur-Barat & Barat-Timur Layang Pasupati',
   'Komuter Lintas Kota Bandung, Penglaju Pasteur-Surapati'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -217,7 +220,7 @@ INSERT OR IGNORE INTO billboard_spots (
   95000000, 14700, 'P8 Outdoor High-Res Videotron', 'Arus By-Pass Kiaracondong menuju Cibiru & Cileunyi',
   'Komuter Bandung Timur, Pengguna Jalur Antarkota, Pekerja Kawasan Bisnis'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -233,7 +236,7 @@ INSERT OR IGNORE INTO billboard_spots (
   210000000, 22500, 'P6 Ultra Dynamic Curve Display', 'Keluar Pintu Tol Bekasi Barat menuju Summarecon & Harapan Baru',
   'Keluarga Mapan, Executive Jabodetabek, Automotive Buyers'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -249,7 +252,7 @@ INSERT OR IGNORE INTO billboard_spots (
   275000000, 21300, 'P10 Highway Rugged LED Display', 'Dua arah Tol Japek: Arah Cikampek/Jawa & Arah Cawang/Jakarta',
   'Pebisnis Tol Trans Jawa, Logistik Nasional, Turis Liburan'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -265,7 +268,7 @@ INSERT OR IGNORE INTO billboard_spots (
   88000000, 13000, 'Backlight LED Module 960W Total', 'Arus Becakayu & Kalimalang menuju Tol Bekasi Barat',
   'Pekerja Komuter Jakarta-Bekasi, Pengunjung Mall'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -281,7 +284,7 @@ INSERT OR IGNORE INTO billboard_spots (
   58000000, 12500, 'Spotlight LED Lumileds 6x200W', 'Pintu Gerbang Harapan Indah dari Jl. Raya Sultan Agung',
   'Keluarga Residensial Modern, Konsumen FMCG'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -297,7 +300,7 @@ INSERT OR IGNORE INTO billboard_spots (
   145000000, 20100, 'P6 SMD LED Vivid 7000 nits', 'Keluar Terminal Baranangsiang & Tol Jagorawi arah Istana Bogor',
   'Wisatawan Kebun Raya, Komuter Kereta/Tol, Mahasiswa IPB'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -313,7 +316,7 @@ INSERT OR IGNORE INTO billboard_spots (
   155000000, 19800, 'P8 Outdoor Anti-Fog Videotron', 'Kendaraan dari Exit Tol Jagorawi Ciawi mendaki jalur Puncak',
   'Wisatawan Akhir Pekan Jabodetabek, Turis Keluarga, Kuliner'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -329,7 +332,7 @@ INSERT OR IGNORE INTO billboard_spots (
   68000000, 13200, 'Metal Halide Floodlight 6x400W', 'Arus Pajajaran dari Warung Jambu menuju Sukasari',
   'Mall Visitors, Akademisi IPB, Komunitas Kafe Pajajaran'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -345,7 +348,7 @@ INSERT OR IGNORE INTO billboard_spots (
   72000000, 12100, 'Backlite LED Uniform Strip', 'Arus Parung-Bogor & Akses Tol BORR Sentul',
   'Penglaju Parung/Bogor Barat, Pengguna Tol BORR'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -361,7 +364,7 @@ INSERT OR IGNORE INTO billboard_spots (
   150000000, 18900, 'P6 Ultra Vibrant LED 6800 nits', 'Arus Jakarta/Pasar Minggu menuju Balai Kota Depok & Sawangan',
   'Mahasiswa UI, Gunadarma, Komuter KRL & Mall Shoppers'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -377,7 +380,7 @@ INSERT OR IGNORE INTO billboard_spots (
   68000000, 12400, 'LED Floodlight 8x250W', 'Keluar Gerbang Tol Kukusan/Cijago menuju Jl. Raya Bogor',
   'Pengguna Tol Cinere-Jagorawi, Residensial Depok Timur'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -393,7 +396,7 @@ INSERT OR IGNORE INTO billboard_spots (
   85000000, 18300, 'P6 SMD LED HD Display', 'Arus simpang Cipto menuju Kartini & Grage Mall',
   'Masyarakat Pantura, Pebisnis Cirebon-Kuningan, Mall Goers'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -409,7 +412,7 @@ INSERT OR IGNORE INTO billboard_spots (
   42000000, 10900, 'Frontlite Spotlight LED 6x200W', 'Dua arah: Kota Cirebon ke Kedawung & Exit Tol Plumbon',
   'Wisatawan Kuliner, Tamu Hotel Tuparev, Komuter Lokal'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -425,7 +428,7 @@ INSERT OR IGNORE INTO billboard_spots (
   125000000, 17400, 'P10 Rugged Weatherproof LED', 'Arah Jakarta ke Jawa Tengah / Surabaya & Arah Sebaliknya',
   'Pemudik & Pelintas Trans Jawa, Armada Ekspedisi, Wisatawan'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -441,7 +444,7 @@ INSERT OR IGNORE INTO billboard_spots (
   185000000, 17100, 'P10 High-Luminance Highway Board', 'Arus Tol Japek arah Cikampek / Tol Cipali & Purbaleunyi',
   'Pebisnis Industri Karawang, Wisatawan Lintas Jawa'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -457,7 +460,7 @@ INSERT OR IGNORE INTO billboard_spots (
   92000000, 17500, 'P6 Outdoor IP65 Certified LED', 'Keluar Tol Karawang Barat menuju Kawasan Industri KIIC & Sedana',
   'Ekspatriat Industri Jepang/Korea, Direksi Pabrik, Pekerja Manufaktur'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -473,7 +476,7 @@ INSERT OR IGNORE INTO billboard_spots (
   65000000, 16000, 'P6 SMD LED Crisp Display', 'Arus utama pusat pertokoan HZ Mustofa arah Simpang Padayungan',
   'Konsumen Priangan Timur, Pelaku UMKM Bordir/Batik, Keluarga'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -489,7 +492,7 @@ INSERT OR IGNORE INTO billboard_spots (
   45000000, 10100, 'High-Power LED Floodlights 6x300W', 'Pertemuan arus dari arah Bandung/Ciawi & Ciamis/Pangandaran',
   'Pelintas Jalur Selatan Jabar, Warga Kota Tasikmalaya'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -505,7 +508,7 @@ INSERT OR IGNORE INTO billboard_spots (
   52000000, 15100, 'P6 SMD LED Outdoor 6000 nits', 'Pusat kota Sukabumi arah Salabintana & Balai Kota',
   'Masyarakat Sukabumi Kota, Wisatawan Salabintana'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -521,7 +524,7 @@ INSERT OR IGNORE INTO billboard_spots (
   55000000, 12600, 'LED Floodlight 6x250W Solar Supported', 'Kendaraan keluar Tol Bocimi menuju Sukabumi & Pelabuhan Ratu',
   'Wisatawan Geopark Ciletuh, Truk Pabrik Air Minum & Garmen'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -537,7 +540,7 @@ INSERT OR IGNORE INTO billboard_spots (
   78000000, 15500, 'P6 SMD LED Screen', 'Keluar Exit Tol Baros menuju Alun-alun Cimahi & Padalarang',
   'Pekerja Industri Kreatif Cimahi, Personel Militer, Komuter'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -553,7 +556,7 @@ INSERT OR IGNORE INTO billboard_spots (
   140000000, 17000, 'P10 Weather-Resistant LED', 'Memasuki Rest Area KM 88 Arah Bandung & Arus Tol Utama',
   'Wisatawan Jakarta ke Bandung, Keluarga, Pebisnis Komuter'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -569,7 +572,7 @@ INSERT OR IGNORE INTO billboard_spots (
   75000000, 11900, 'Solar Powered LED Floodlights 8x150W', 'Dua arah Tol Cipali: Menuju Cirebon/Jawa & Menuju Jakarta',
   'Pengendara Jarak Jauh Trans Jawa, Sopir Bus & Truk Logistik'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,
@@ -585,7 +588,7 @@ INSERT OR IGNORE INTO billboard_spots (
   68000000, 15600, 'P6 Full HD LED Display', 'Keluar Gerbang Tol Cileunyi/Cisumdawu menuju Kampus Unpad/ITB',
   'Mahasiswa, Civitas Akademika Unpad/ITB/IPDN, Remaja'
 );
-INSERT OR IGNORE INTO billboard_spots (
+INSERT IGNORE INTO billboard_spots (
   spot_id, spot_code, name, regency, district, address, road_name, road_type, corridor_type,
   latitude, longitude, media_type, width_m, height_m, area_m2, sides, orientation,
   viewing_distance_m, daily_gross_reach, vac_daily, avg_dwell_time_sec, avg_speed_kmh,

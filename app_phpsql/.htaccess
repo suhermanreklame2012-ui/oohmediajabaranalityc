@@ -1,14 +1,20 @@
+# Prioritize index.php over old index.html
+DirectoryIndex index.php index.html
+
 # Apache mod_rewrite for SPA & API Security
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  # 1. Protect database files, logs, and sensitive data from direct public download
+  # 1. Prevent old index.html from overriding the application
+  RewriteRule ^index\.html$ index.php [L]
+
+  # 2. Protect database files, logs, and sensitive data from direct public download
   RewriteRule ^data/.*\.(sqlite|db|sql|log)$ - [F,L]
   RewriteRule ^config/.*\.php$ - [F,L]
   RewriteRule ^\.env.*$ - [F,L]
 
-  # 2. Extensionless API routing to corresponding PHP files
+  # 3. Extensionless API routing to corresponding PHP files
   RewriteRule ^api/spots/?$ api/spots.php [L,QSA]
   RewriteRule ^api/spots/([a-zA-Z0-9_\-]+)/?$ api/spots.php?id=$1 [L,QSA]
   RewriteRule ^api/auth/?$ api/auth.php [L,QSA]
@@ -18,12 +24,12 @@
   RewriteRule ^api/database/export/sqlite/?$ api/export_sqlite.php [L,QSA]
   RewriteRule ^api/leads/?$ api/leads.php [L,QSA]
 
-  # 3. Allow direct access to existing files and directories (assets, api, uploads, etc.)
+  # 4. Allow direct access to existing files and directories (assets, api, uploads, etc.)
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # 4. Route all other requests to index.php for client-side routing
+  # 5. Route all other requests to index.php for client-side routing
   RewriteRule ^ index.php [L]
 </IfModule>
 
